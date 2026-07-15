@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "subject": "ZZZZ",
+    "subject_title": "Synthetic Studies",
+    "total_courses": 2,
+    "scraped_at": "2026-07-15T00:00:00+00:00",
+    "future_metadata": "accepted"
+  },
+  "courses": [
+    {
+      "subject": "ZZZZ",
+      "course_code": "1001",
+      "title": "Synthetic Systems",
+      "credits": "3.00",
+      "academic_career": "Undergraduate",
+      "description": "Synthetic fixture content.",
+      "terms": [
+        {
+          "term_code": "9001",
+          "term_name": "2099-00 Term 1",
+          "schedule": [
+            {
+              "section": "A-LEC (1001)",
+              "meetings": [
+                {
+                  "time": "Mo 9:30AM - 11:15AM",
+                  "location": "Synthetic Room A",
+                  "instructor": "Professor SAMPLE Alpha",
+                  "dates": "1/9, 8/9, 15/9"
+                }
+              ],
+              "availability": {
+                "capacity": "30",
+                "enrolled": "10",
+                "available_seats": "20",
+                "waitlist_capacity": "0",
+                "waitlist_total": "0",
+                "status": "Open"
+              },
+              "class_attributes": "English only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subject": "ZZZZ",
+      "course_code": "1002",
+      "title": "Uncertain Scheduling",
+      "credits": "1.50",
+      "terms": [
+        {
+          "term_code": "9001",
+          "term_name": "2099-00 Term 1",
+          "schedule": [
+            {
+              "section": "--LEC (1002)",
+              "meetings": [
+                {
+                  "time": "TBA",
+                  "location": "TBA",
+                  "instructor": "TBA",
+                  "dates": "TBA"
+                }
+              ],
+              "availability": {
+                "capacity": "20",
+                "enrolled": "0",
+                "available_seats": "20",
+                "waitlist_capacity": "0",
+                "waitlist_total": "0",
+                "status": "Open"
+              },
+              "class_attributes": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

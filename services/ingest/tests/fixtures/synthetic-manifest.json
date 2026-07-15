@@ -1,0 +1,10 @@
+{
+  "source_name": "synthetic-another-planner-compatible",
+  "source_uri": "fixture://cuweave/synthetic-subject.json",
+  "upstream_revision": "6c9ea314ff5595dd90a88bbbdae8d286408d85f3",
+  "expected_revisions": ["6c9ea314ff5595dd90a88bbbdae8d286408d85f3"],
+  "retrieved_at": "2026-07-15T00:00:00+00:00",
+  "academic_year": "2099-00",
+  "subject": "ZZZZ",
+  "completeness": "complete"
+}

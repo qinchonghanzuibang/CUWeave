@@ -20,6 +20,8 @@
     "test": "pnpm test:ts && pnpm test:py",
     "test:ts": "pnpm --filter './packages/**' --filter './apps/**' test",
     "test:py": "cd services/ingest && uv run pytest",
+    "test:integration": "cd services/ingest && uv run pytest tests/test_importer.py",
+    "ingest": "cd services/ingest && uv run cuweave-ingest",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down",
