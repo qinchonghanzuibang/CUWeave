@@ -1,0 +1,24 @@
+{
+  "name": "@cuweave/config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    "./eslint/base": "./eslint/base.mjs"
+  },
+  "scripts": {
+    "lint": "eslint eslint/base.mjs",
+    "typecheck": "node --check eslint/base.mjs",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^22.19.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.15"
+  }
+}

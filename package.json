@@ -1,0 +1,32 @@
+{
+  "name": "cuweave",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @cuweave/web dev",
+    "build": "pnpm --filter @cuweave/web build",
+    "lint": "pnpm lint:ts && pnpm lint:py",
+    "lint:ts": "pnpm --filter './packages/**' --filter './apps/**' lint",
+    "lint:py": "cd services/ingest && uv run ruff check .",
+    "format": "prettier --write . && cd services/ingest && uv run ruff format .",
+    "format:check": "prettier --check . && cd services/ingest && uv run ruff format --check .",
+    "typecheck": "pnpm --filter './packages/**' --filter './apps/**' typecheck",
+    "test": "pnpm test:ts && pnpm test:py",
+    "test:ts": "pnpm --filter './packages/**' --filter './apps/**' test",
+    "test:py": "cd services/ingest && uv run pytest",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @cuweave/db db:migrate",
+    "db:generate": "pnpm --filter @cuweave/db db:generate"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
