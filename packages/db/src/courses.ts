@@ -27,6 +27,7 @@ export interface CourseMeeting {
 
 export interface CourseSection {
   id: string
+  courseCode?: string
   label: string
   termKey: string
   termName: string

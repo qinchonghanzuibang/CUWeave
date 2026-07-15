@@ -2,6 +2,8 @@ import { getCourseDetail } from '@cuweave/db'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { AddSectionButton } from './add-section-button'
+
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
@@ -83,11 +85,7 @@ export default async function CourseDetailPage({
                     </p>
                     <h3 className="mt-1 text-lg font-black">{section.label}</h3>
                   </div>
-                  <span
-                    className="planner-action-slot"
-                    data-course-code={course.code}
-                    data-section-id={section.id}
-                  />
+                  <AddSectionButton sectionId={section.id} />
                 </div>
                 <div className="mt-4 space-y-3">
                   {section.meetings.length === 0 ? (
