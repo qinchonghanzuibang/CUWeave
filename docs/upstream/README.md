@@ -18,7 +18,8 @@ The detailed audit was an external pre-implementation planning record and is not
 this repository. This summary is intentionally self-contained and does not link to an unavailable
 local planning artifact.
 
-Milestone 0A incorporates **no upstream source code, fixtures, assets, branding, or academic data**.
-Reviewing a repository does not authorize reuse. Any future adaptation requires a recorded
-classification, license compliance, file-level attribution where appropriate, and an update to
-`THIRD_PARTY_NOTICES.md` before merge.
+Fast-track Milestone 1 adds an independently implemented compatibility adapter for local JSON at
+the recorded Another Planner revision. No upstream source code, fixtures, assets, or branding are
+copied. Synthetic tests contain no real CUHK facts. Developers may import real academic JSON from a
+separate read-only checkout into their local PostgreSQL database, but those files are not committed
+or used by CI.

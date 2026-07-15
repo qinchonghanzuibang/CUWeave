@@ -57,6 +57,12 @@
               "section": "--LEC (1002)",
               "meetings": [
                 {
+                  "time": "Mo 10:30AM - 12:15PM",
+                  "location": "Synthetic Room B",
+                  "instructor": "Dr. SAMPLE Beta",
+                  "dates": "1/9, 8/9, 15/9"
+                },
+                {
                   "time": "TBA",
                   "location": "TBA",
                   "instructor": "TBA",

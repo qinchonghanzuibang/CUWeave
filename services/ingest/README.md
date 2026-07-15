@@ -4,8 +4,8 @@ This Python 3.12+ package validates local Another Planner-compatible JSON and im
 subject/year scope transactionally. It never fetches URLs or invokes a scraper.
 
 ```bash
-pnpm ingest -- validate "$INPUT" --manifest "$MANIFEST"
-DATABASE_URL=postgresql://... pnpm ingest -- import "$INPUT" --manifest "$MANIFEST"
+pnpm ingest validate "$INPUT" --manifest "$MANIFEST"
+DATABASE_URL=postgresql://... pnpm ingest import "$INPUT" --manifest "$MANIFEST"
 ```
 
 The manifest supplies source URI, retrieval time, academic year, subject, completeness, and the

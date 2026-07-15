@@ -2,43 +2,33 @@
 
 ## System shape
 
-CUWeave is a Web-first monorepo. The current foundation has four dependency layers:
-
 ```text
-apps/web -> packages/domain
-         -> packages/db -> PostgreSQL
-
-services/ingest -> future validated import boundary
+local pinned JSON -> services/ingest -> PostgreSQL <- packages/db <- apps/web
+                                                        ^
+browser localStorage -> packages/planner ----------------|
 ```
 
-`apps/web` owns the Next.js App Router, Server Components, and versioned HTTP endpoints. Server
-Components are the default; Client Components will be added only for genuine interaction.
+Drizzle is the only schema and migration authority. The Python ingestion service validates
+untrusted local JSON, preserves exact source content and provenance, and performs one subject/year
+activation transaction. It has no network or scraper behavior.
 
-`packages/domain` is framework-independent and currently contains only health contracts.
-`packages/db` owns environment validation, Drizzle, migrations, and readiness queries. Web code
-must not construct database clients directly.
+`packages/db` owns lazy connections and request-time queries. Database-dependent Next.js pages and
+handlers are explicitly dynamic; imports and production builds do not contact PostgreSQL.
 
-## Backend boundary
+`packages/planner` is framework-independent and has no React, Next.js, browser, Drizzle, or
+PostgreSQL dependency. The browser stores only a versioned set of selected section IDs and reloads
+current section details through a small versioned route.
 
-The initial backend lives inside Next.js to keep development and operations simple. Stable HTTP
-interfaces use `/api/v1`. Business rules belong in framework-independent packages so a separate
-service can be introduced later without rewriting the domain.
+## Academic history
 
-Database-dependent pages and handlers are explicitly dynamic. Database connections are lazy and
-must never occur during module initialization, metadata generation, or `next build`.
+`course` is stable identity. Catalog, offering, and section rows are versioned with nullable closing
+import references. Meetings are immutable children of section revisions. Complete subject/year
+snapshots may retire missing current records; incomplete snapshots cannot. Failed activation
+transactions leave active academic records unchanged, and duplicate content/adapter imports do not
+duplicate academic rows.
 
-## Data boundaries
+## Product boundaries
 
-PostgreSQL is the canonical relational store. Milestone 0A contains only `system_metadata` to prove
-connectivity and migration execution. The academic model—source snapshots, import runs, courses,
-catalog versions, offerings, sections, meetings, and instructors—is deferred to Milestone 0B.
-
-The Python ingestion service will eventually validate untrusted upstream input before it crosses
-into canonical storage. Milestone 0A contains no adapter, network access, scraper, academic schema,
-or database writer.
-
-## Deferred work
-
-Authentication, schedules, reviews, programme requirements, object storage, analytics, and
-deployment infrastructure are outside Milestone 0A. Native mobile work is deferred indefinitely;
-no mobile package or cross-platform abstraction is present.
+The current Web slice provides course search, detail pages, and local timetable planning. CUSIS
+remains authoritative. Authentication, cloud schedules, reviews, programme requirements, live
+scraping, mobile clients, analytics, and production deployment remain deferred.

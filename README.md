@@ -1,28 +1,26 @@
 # CUWeave
 
-CUWeave is an unofficial, student-led, open-source academic planning platform for students at The
-Chinese University of Hong Kong. The long-term product will bring course discovery, timetable
-planning, course reviews, and programme requirement checking into one coherent experience.
+CUWeave is an unofficial, student-led, open-source course explorer and academic planning platform
+for students at The Chinese University of Hong Kong.
 
 > CUWeave is not affiliated with or endorsed by CUHK. It is an advisory planning tool, not a
 > replacement for CUSIS. Always verify final enrollment details in CUSIS.
 
 ## Current status
 
-The project is at **Milestone 0A: Project Foundation**. This repository currently provides the web,
-database, package, testing, and CI foundations only. It contains no academic data, upstream
-adapters, course search, timetable planner, reviews, authentication, or programme rules.
+Fast-track Milestone 1 provides a working Web slice: local pinned course-data imports, searchable
+course and section pages, and a browser-local weekly planner with confirmed and uncertain conflict
+reporting. Accounts, reviews, programme requirements, and cloud synchronization remain deferred.
 
-CUWeave is Web-first. A native mobile application is deferred and no mobile-specific architecture
-is included.
+The repository does not contain real course JSON. Tests and CI use independently synthetic data;
+developers may validate local read-only files from an audited upstream checkout.
 
 ## Technology
 
-- pnpm workspace with strict TypeScript
-- Next.js App Router, React, and Tailwind CSS
-- PostgreSQL 16 and Drizzle ORM
-- Python 3.12+, uv, Pydantic, pytest, and Ruff
-- Vitest and GitHub Actions
+- pnpm workspace, strict TypeScript, Next.js App Router, React, and Tailwind CSS
+- PostgreSQL 16 and Drizzle-owned schema/migrations
+- Python 3.12+, uv, Pydantic, Psycopg, pytest, and Ruff
+- Vitest, focused Playwright flows, and GitHub Actions
 
 ## Local setup
 
@@ -37,38 +35,51 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open <http://localhost:3000>. The versioned health endpoint is
-<http://localhost:3000/api/v1/health>.
+Open <http://localhost:3000>, browse `/courses`, or open `/planner`.
+
+## Import local pinned course data
+
+The CLI accepts local files only and never fetches a source URI. Create a manifest using the shape
+documented in [the import guide](docs/upstream/importing.md), then run:
+
+```bash
+pnpm ingest validate "$INPUT" --manifest "$MANIFEST"
+DATABASE_URL="$DATABASE_URL" pnpm ingest import "$INPUT" --manifest "$MANIFEST"
+```
+
+For the audited Another Planner checkout, `INPUT` may point to
+`data/2026-27/IERG.json` or `data/2026-27/ENGG.json` outside this repository. Do not copy those
+files into CUWeave.
 
 ## Core commands
 
-| Command                       | Purpose                                                    |
-| ----------------------------- | ---------------------------------------------------------- |
-| `pnpm dev`                    | Start the Web development server                           |
-| `pnpm build`                  | Build the production Web application                       |
-| `pnpm lint`                   | Run TypeScript and Python lint checks                      |
-| `pnpm format`                 | Format TypeScript, documentation, and Python               |
-| `pnpm format:check`           | Verify formatting without writing                          |
-| `pnpm typecheck`              | Type-check all TypeScript workspaces                       |
-| `pnpm test`                   | Run TypeScript and Python tests                            |
-| `pnpm check`                  | Run all repository quality checks and the production build |
-| `pnpm db:up` / `pnpm db:down` | Start or stop local PostgreSQL                             |
-| `pnpm db:migrate`             | Apply committed migrations                                 |
-| `pnpm db:generate`            | Generate a migration from the Drizzle schema               |
+| Command                       | Purpose                                                 |
+| ----------------------------- | ------------------------------------------------------- |
+| `pnpm dev`                    | Start the Web development server                        |
+| `pnpm build`                  | Build Web without requiring a reachable database        |
+| `pnpm ingest ...`             | Validate or import one local subject/year snapshot      |
+| `pnpm lint`                   | Run TypeScript and Python lint checks                   |
+| `pnpm format:check`           | Verify TypeScript, documentation, and Python formatting |
+| `pnpm typecheck`              | Type-check all TypeScript workspaces                    |
+| `pnpm test`                   | Run TypeScript and Python tests                         |
+| `pnpm test:integration`       | Run PostgreSQL ingestion lifecycle tests                |
+| `pnpm test:e2e`               | Run the focused course-to-planner browser flow          |
+| `pnpm check`                  | Run repository quality checks and production build      |
+| `pnpm db:up` / `pnpm db:down` | Start or stop local PostgreSQL                          |
+| `pnpm db:migrate`             | Apply committed migrations                              |
+| `pnpm db:generate`            | Generate a migration from the Drizzle schema            |
 
 ## Repository structure
 
 ```text
-apps/web/          Next.js Web application and HTTP boundary
+apps/web/          Next.js course explorer, detail pages, planner, and HTTP boundary
 packages/config/   Shared lint configuration
-packages/db/       Drizzle schema, client, readiness, and migrations
+packages/db/       Drizzle schema, request-time course queries, and migrations
 packages/domain/   Framework-independent health contracts
-services/ingest/   Minimal Python ingestion package foundation
-docs/              Architecture, decisions, product principles, and upstream audit summary
+packages/planner/  Framework-independent conflict and schedule semantics
+services/ingest/   Local-file validation and transactional academic imports
+docs/              Architecture, product principles, and provenance documentation
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change.
-
-## License
-
-CUWeave is licensed under [AGPL-3.0-only](LICENSE).
+See [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change. CUWeave is licensed under
+[AGPL-3.0-only](LICENSE).

@@ -1,4 +1,5 @@
-import { getRepositoryUrl } from '../lib/repository-url'
+import Link from 'next/link'
+
 import { getHealthStatus } from '../lib/status'
 
 export const dynamic = 'force-dynamic'
@@ -30,30 +31,12 @@ function StatusBadge({
 export default async function Home() {
   const health = await getHealthStatus()
   const databaseReady = health.checks.database === 'ready'
-  const repositoryUrl = getRepositoryUrl()
-
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-8 sm:px-8 sm:py-12">
-      <nav className="flex items-center justify-between border-b border-emerald-950/15 pb-5">
-        <span className="text-xl font-black tracking-tight text-emerald-950">
-          CUWeave
-        </span>
-        {repositoryUrl ? (
-          <a
-            className="rounded-full border border-emerald-900/20 px-4 py-2 text-sm font-semibold transition hover:bg-white/60"
-            href={repositoryUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            GitHub
-          </a>
-        ) : null}
-      </nav>
-
+    <main className="mx-auto flex min-h-[calc(100vh-73px)] w-full max-w-6xl flex-col px-5 py-8 sm:px-8 sm:py-12">
       <section className="grid flex-1 items-center gap-10 py-14 lg:grid-cols-[1.2fr_0.8fr] lg:py-20">
         <div>
           <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-emerald-800">
-            Milestone 0A · Project Foundation
+            Fast-track Milestone 1
           </p>
           <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-[-0.045em] text-emerald-950 sm:text-7xl">
             Academic planning, thoughtfully woven together.
@@ -63,10 +46,19 @@ export default async function Home() {
             academic planning experience for students at The Chinese University
             of Hong Kong.
           </p>
-          <div className="mt-8 rounded-2xl border border-amber-900/15 bg-amber-50/70 p-5 text-sm leading-6 text-amber-950">
-            <strong>No academic data has been imported yet.</strong> Course
-            discovery, timetable planning, reviews, and programme requirements
-            remain future milestones.
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              className="rounded-full bg-emerald-900 px-5 py-3 font-bold text-white"
+              href="/courses"
+            >
+              Explore courses
+            </Link>
+            <Link
+              className="rounded-full border border-emerald-900/20 bg-white/60 px-5 py-3 font-bold"
+              href="/planner"
+            >
+              Open planner
+            </Link>
           </div>
         </div>
 
@@ -91,9 +83,8 @@ export default async function Home() {
             </div>
           </dl>
           <p className="mt-7 text-sm leading-6 text-slate-600">
-            This page checks database readiness only when requested. A database
-            outage does not prevent the project information from being
-            displayed.
+            Course data comes from explicitly pinned local snapshots. Database
+            checks and course queries run only when requested.
           </p>
         </aside>
       </section>
