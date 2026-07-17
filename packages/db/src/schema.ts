@@ -278,3 +278,346 @@ export const sectionInstructor = pgTable(
   },
   (table) => [primaryKey({ columns: [table.sectionId, table.instructorId] })]
 )
+
+export const user = pgTable(
+  'app_user',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull(),
+    emailVerified: boolean('email_verified').notNull().default(false),
+    image: text('image'),
+    role: text('role').notNull().default('user'),
+    status: text('status').notNull().default('active'),
+    verifiedCuhkEmail: boolean('verified_cuhk_email').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('app_user_email_unique').on(sql`lower(${table.email})`),
+    check(
+      'app_user_role_check',
+      sql`${table.role} in ('user', 'moderator', 'admin')`
+    ),
+    check(
+      'app_user_status_check',
+      sql`${table.status} in ('active', 'deactivated')`
+    ),
+  ]
+)
+
+export const session = pgTable(
+  'auth_session',
+  {
+    id: text('id').primaryKey(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    token: text('token').notNull().unique(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+  },
+  (table) => [index('auth_session_user_idx').on(table.userId)]
+)
+
+export const account = pgTable(
+  'auth_account',
+  {
+    id: text('id').primaryKey(),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', {
+      withTimezone: true,
+    }),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', {
+      withTimezone: true,
+    }),
+    scope: text('scope'),
+    password: text('password'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('auth_account_user_idx').on(table.userId),
+    unique('auth_account_provider_unique').on(
+      table.providerId,
+      table.accountId
+    ),
+  ]
+)
+
+export const verification = pgTable(
+  'auth_verification',
+  {
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index('auth_verification_identifier_idx').on(table.identifier)]
+)
+
+export const savedSchedule = pgTable(
+  'saved_schedule',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    version: integer('version').notNull().default(1),
+    shareTokenHash: char('share_token_hash', { length: 64 }),
+    shareCreatedAt: timestamp('share_created_at', { withTimezone: true }),
+    shareRevokedAt: timestamp('share_revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('saved_schedule_user_idx').on(table.userId),
+    uniqueIndex('saved_schedule_share_hash_unique')
+      .on(table.shareTokenHash)
+      .where(sql`${table.shareTokenHash} is not null`),
+    check('saved_schedule_version_check', sql`${table.version} > 0`),
+    check(
+      'saved_schedule_name_check',
+      sql`char_length(trim(${table.name})) between 1 and 80`
+    ),
+  ]
+)
+
+export const savedScheduleItem = pgTable(
+  'saved_schedule_item',
+  {
+    scheduleId: uuid('schedule_id')
+      .notNull()
+      .references(() => savedSchedule.id, { onDelete: 'cascade' }),
+    sectionId: uuid('section_id')
+      .notNull()
+      .references(() => section.id, { onDelete: 'restrict' }),
+    position: integer('position').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.scheduleId, table.sectionId] }),
+    check('saved_schedule_item_position_check', sql`${table.position} >= 0`),
+  ]
+)
+
+export const courseFavorite = pgTable(
+  'course_favorite',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    courseId: uuid('course_id')
+      .notNull()
+      .references(() => course.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.courseId] })]
+)
+
+export const review = pgTable(
+  'review',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    authorId: text('author_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    offeringId: uuid('offering_id')
+      .notNull()
+      .references(() => courseOffering.id, { onDelete: 'restrict' }),
+    instructorId: uuid('instructor_id').references(() => instructor.id, {
+      onDelete: 'restrict',
+    }),
+    isAnonymous: boolean('is_anonymous').notNull().default(true),
+    recommendation: boolean('recommendation'),
+    attendanceRequirement: text('attendance_requirement').notNull(),
+    assessmentSummary: text('assessment_summary').notNull().default(''),
+    body: text('body').notNull(),
+    moderationState: text('moderation_state').notNull().default('published'),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('review_active_scope_unique')
+      .on(
+        table.authorId,
+        table.offeringId,
+        sql`coalesce(${table.instructorId}, '00000000-0000-0000-0000-000000000000'::uuid)`
+      )
+      .where(sql`${table.deletedAt} is null`),
+    index('review_offering_idx').on(table.offeringId),
+    check(
+      'review_attendance_check',
+      sql`${table.attendanceRequirement} in ('required', 'optional', 'unknown')`
+    ),
+    check(
+      'review_moderation_state_check',
+      sql`${table.moderationState} in ('published', 'under_review', 'hidden')`
+    ),
+    check(
+      'review_body_length_check',
+      sql`char_length(${table.body}) between 20 and 4000`
+    ),
+    check(
+      'review_assessment_length_check',
+      sql`char_length(${table.assessmentSummary}) <= 1000`
+    ),
+  ]
+)
+
+export const reviewRating = pgTable(
+  'review_rating',
+  {
+    reviewId: uuid('review_id')
+      .notNull()
+      .references(() => review.id, { onDelete: 'cascade' }),
+    dimension: text('dimension').notNull(),
+    value: smallint('value').notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.reviewId, table.dimension] }),
+    check(
+      'review_rating_dimension_check',
+      sql`${table.dimension} in ('overall', 'teaching', 'workload', 'difficulty', 'grading', 'usefulness')`
+    ),
+    check('review_rating_value_check', sql`${table.value} between 1 and 5`),
+  ]
+)
+
+export const reviewVote = pgTable(
+  'review_vote',
+  {
+    reviewId: uuid('review_id')
+      .notNull()
+      .references(() => review.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    value: text('value').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.reviewId, table.userId] }),
+    check(
+      'review_vote_value_check',
+      sql`${table.value} in ('helpful', 'not_helpful')`
+    ),
+  ]
+)
+
+export const reviewReport = pgTable(
+  'review_report',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reviewId: uuid('review_id')
+      .notNull()
+      .references(() => review.id, { onDelete: 'cascade' }),
+    reporterId: text('reporter_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    category: text('category').notNull(),
+    explanation: text('explanation').notNull().default(''),
+    status: text('status').notNull().default('open'),
+    moderatorId: text('moderator_id').references(() => user.id, {
+      onDelete: 'restrict',
+    }),
+    resolutionNotes: text('resolution_notes').notNull().default(''),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('review_report_reporter_unique').on(
+      table.reviewId,
+      table.reporterId
+    ),
+    index('review_report_status_idx').on(table.status, table.createdAt),
+    check(
+      'review_report_category_check',
+      sql`${table.category} in ('spam', 'harassment', 'privacy', 'incorrect', 'other')`
+    ),
+    check(
+      'review_report_status_check',
+      sql`${table.status} in ('open', 'resolved', 'dismissed')`
+    ),
+    check(
+      'review_report_explanation_check',
+      sql`char_length(${table.explanation}) <= 1000`
+    ),
+    check(
+      'review_report_resolution_check',
+      sql`char_length(${table.resolutionNotes}) <= 2000`
+    ),
+  ]
+)
+
+export const reviewRevision = pgTable(
+  'review_revision',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reviewId: uuid('review_id')
+      .notNull()
+      .references(() => review.id, { onDelete: 'cascade' }),
+    editorId: text('editor_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    snapshot: jsonb('snapshot').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('review_revision_review_idx').on(table.reviewId, table.createdAt),
+  ]
+)

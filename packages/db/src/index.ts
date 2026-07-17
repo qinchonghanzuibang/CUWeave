@@ -1,4 +1,5 @@
 export { checkDatabaseReadiness } from './readiness'
+export { getDatabaseConnection } from './client'
 export {
   getCourseDetail,
   getSectionsByIds,
@@ -8,3 +9,4 @@ export {
   type CourseSearchItem,
   type CourseSection,
 } from './courses'
+export * from './product'

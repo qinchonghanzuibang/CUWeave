@@ -35,6 +35,7 @@ export interface CourseSection {
 }
 
 export interface CourseDetail {
+  id: string
   code: string
   title: string
   credits: string
@@ -60,6 +61,7 @@ export async function searchCourses(
   const subject = options.subject?.trim().toUpperCase() ?? ''
   const term = options.term?.trim() ?? ''
   const result = await pool.query<{
+    course_id: string
     code: string
     subject: string
     catalog_number: string
@@ -116,6 +118,7 @@ export async function getCourseDetail(
   if (!match) return null
   const { pool } = getDatabaseConnection()
   const result = await pool.query<{
+    course_id: string
     code: string
     title: string
     credits: string
@@ -141,6 +144,7 @@ export async function getCourseDetail(
   }>(
     `
       select
+        c.id::text as course_id,
         c.subject_code || c.catalog_number as code,
         v.title, v.credits::text, v.academic_career_raw as academic_career,
         v.academic_year, snap.source_name, snap.upstream_revision,
@@ -207,6 +211,7 @@ export async function getCourseDetail(
     }
   }
   return {
+    id: first.course_id,
     code: first.code,
     title: first.title,
     credits: first.credits,
