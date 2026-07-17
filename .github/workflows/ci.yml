@@ -15,6 +15,8 @@ jobs:
     timeout-minutes: 15
     env:
       DATABASE_URL: postgresql://ci:ci@127.0.0.1:65432/unreachable
+      BETTER_AUTH_SECRET: ci-build-secret-that-is-at-least-32-characters
+      BETTER_AUTH_URL: http://127.0.0.1:3000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -69,6 +71,7 @@ jobs:
           --health-retries 15
     env:
       DATABASE_URL: postgresql://cuweave:ci-only@127.0.0.1:5432/cuweave
+      CUWEAVE_TEST_DATABASE_URL: postgresql://cuweave:ci-only@127.0.0.1:5432/cuweave
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -93,9 +96,10 @@ jobs:
         working-directory: services/ingest
         env:
           CUWEAVE_TEST_DATABASE_URL: postgresql://cuweave:ci-only@127.0.0.1:5432/cuweave
+      - run: pnpm --filter @cuweave/db test
 
   e2e:
-    name: Focused course planner flow
+    name: Focused public beta Web flows
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -114,6 +118,9 @@ jobs:
           --health-retries 15
     env:
       DATABASE_URL: postgresql://cuweave:ci-only@127.0.0.1:5432/cuweave
+      AUTH_DEV_MODE: 'true'
+      BETTER_AUTH_SECRET: ci-playwright-secret-that-is-at-least-32-characters
+      BETTER_AUTH_URL: http://127.0.0.1:3100
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -135,5 +142,6 @@ jobs:
           uv run cuweave-ingest import tests/fixtures/synthetic-subject.json
           --manifest tests/fixtures/synthetic-manifest.json
         working-directory: services/ingest
+      - run: pnpm dev:seed
       - run: pnpm --filter @cuweave/web exec playwright install --with-deps chromium
       - run: pnpm test:e2e
