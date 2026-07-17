@@ -1,8 +1,16 @@
-import { getCourseDetail } from '@cuweave/db'
+import {
+  getCourseDetail,
+  getCourseReviewOptions,
+  listCourseReviews,
+  listFavorites,
+} from '@cuweave/db'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { AddSectionButton } from './add-section-button'
+import { FavoriteButton } from './favorite-button'
+import { ReviewHub } from './review-hub'
+import { getViewer } from '../../../lib/session'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -26,13 +34,19 @@ export default async function CourseDetailPage({
     )
   }
   if (!course) notFound()
+  const viewer = await getViewer()
+  const [reviewOptions, reviewData, favorites] = await Promise.all([
+    getCourseReviewOptions(course.code),
+    listCourseReviews(course.code, {}, viewer?.id),
+    viewer ? listFavorites(viewer.id) : Promise.resolve([]),
+  ])
 
   return (
-    <main className="mx-auto min-h-[calc(100vh-73px)] w-full max-w-5xl px-5 py-10 sm:px-8">
+    <main className="page-shell py-10 sm:py-14">
       <Link className="text-sm font-bold text-emerald-800" href="/courses">
         ← Back to courses
       </Link>
-      <div className="mt-6 rounded-3xl border border-emerald-950/15 bg-white/70 p-6 shadow-sm sm:p-8">
+      <div className="panel mt-6 p-6 sm:p-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
           <div>
             <p className="font-black text-emerald-800">{course.code}</p>
@@ -43,9 +57,16 @@ export default async function CourseDetailPage({
               <p className="mt-3 text-slate-600">{course.academicCareer}</p>
             ) : null}
           </div>
-          <span className="w-fit rounded-full bg-emerald-100 px-4 py-2 font-bold text-emerald-900">
-            {course.credits} units
-          </span>
+          <div className="flex flex-wrap gap-2 sm:justify-end">
+            <span className="w-fit rounded-full bg-emerald-100 px-4 py-2 font-bold text-emerald-900">
+              {course.credits} units
+            </span>
+            <FavoriteButton
+              courseId={course.id}
+              initial={favorites.some((favorite) => favorite.id === course.id)}
+              signedIn={Boolean(viewer)}
+            />
+          </div>
         </div>
         <div className="mt-7 grid gap-3 border-t border-emerald-950/10 pt-5 text-sm text-slate-600 sm:grid-cols-2">
           <p>
@@ -121,6 +142,13 @@ export default async function CourseDetailPage({
           )}
         </div>
       </section>
+      <ReviewHub
+        courseCode={course.code}
+        initialAggregate={reviewData.aggregate}
+        initialReviews={reviewData.reviews}
+        offerings={reviewOptions.offerings}
+        signedIn={Boolean(viewer)}
+      />
       <aside className="mt-8 rounded-2xl border border-amber-900/15 bg-amber-50/70 p-5 text-sm leading-6 text-amber-950">
         CUWeave is an unofficial planning aid. Always verify final enrollment
         details in CUSIS.

@@ -16,7 +16,9 @@
     "@cuweave/db": "workspace:*",
     "@cuweave/domain": "workspace:*",
     "@cuweave/planner": "workspace:*",
+    "better-auth": "^1.6.23",
     "next": "^16.0.10",
+    "nodemailer": "^9.0.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
@@ -25,6 +27,7 @@
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/node": "^22.19.1",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.1",

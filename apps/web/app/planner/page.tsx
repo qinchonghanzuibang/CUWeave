@@ -1,20 +1,25 @@
+import { listSavedSchedules } from '@cuweave/db'
+
+import { getViewer } from '../../lib/session'
 import { PlannerClient } from './planner-client'
 
-export default function PlannerPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function PlannerPage() {
+  const viewer = await getViewer()
+  const schedules = viewer ? await listSavedSchedules(viewer.id) : []
   return (
-    <main className="mx-auto min-h-[calc(100vh-73px)] w-full max-w-6xl px-5 py-10 sm:px-8">
-      <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-800">
-        Local planner
-      </p>
-      <h1 className="mt-3 text-4xl font-black tracking-tight text-emerald-950 sm:text-5xl">
+    <main className="page-shell py-10 sm:py-14">
+      <span className="eyebrow">Local-first planner</span>
+      <h1 className="page-title mt-4 !text-[clamp(2.5rem,7vw,4.5rem)]">
         Weave a workable week.
       </h1>
-      <p className="mt-3 max-w-3xl text-slate-600">
-        Your section choices stay in this browser. Confirmed overlaps and
-        uncertain scheduling details are kept separate so missing data never
-        looks safe.
+      <p className="page-lead mt-4">
+        Anonymous choices stay in this browser. Sign in when you want named
+        cloud copies and private synchronization. Missing teaching dates are
+        still shown as uncertainty, never as a safe gap.
       </p>
-      <PlannerClient />
+      <PlannerClient signedIn={Boolean(viewer)} schedules={schedules} />
     </main>
   )
 }

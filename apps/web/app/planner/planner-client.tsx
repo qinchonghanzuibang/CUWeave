@@ -1,6 +1,6 @@
 'use client'
 
-import type { CourseSection } from '@cuweave/db'
+import type { CourseSection, SavedScheduleRecord } from '@cuweave/db'
 import {
   findConflicts,
   parseSchedule,
@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 type LoadedSection = CourseSection & { courseCode: string }
+const CLOUD_SCHEDULE_KEY = 'cuweave:cloud-schedule-id'
 
 const weekdays = [
   'Monday',
@@ -50,9 +51,17 @@ function asPlannerSection(section: LoadedSection): PlannerSection {
   }
 }
 
-export function PlannerClient() {
+export function PlannerClient({
+  signedIn,
+  schedules,
+}: {
+  signedIn: boolean
+  schedules: SavedScheduleRecord[]
+}) {
   const [sections, setSections] = useState<LoadedSection[]>([])
   const [unavailable, setUnavailable] = useState(false)
+  const [cloudMessage, setCloudMessage] = useState('')
+  const [cloudSchedules, setCloudSchedules] = useState(schedules)
   const stored = useSyncExternalStore(
     (notify) => {
       window.addEventListener('storage', notify)
@@ -65,7 +74,22 @@ export function PlannerClient() {
     () => window.localStorage.getItem(STORAGE_KEY) ?? '',
     () => ''
   )
+  const selectedCloudId = useSyncExternalStore(
+    (notify) => {
+      window.addEventListener('storage', notify)
+      window.addEventListener('cuweave:cloud-schedule-changed', notify)
+      return () => {
+        window.removeEventListener('storage', notify)
+        window.removeEventListener('cuweave:cloud-schedule-changed', notify)
+      }
+    },
+    () => window.localStorage.getItem(CLOUD_SCHEDULE_KEY) ?? '',
+    () => ''
+  )
   const sectionIds = useMemo(() => parseSchedule(stored).sectionIds, [stored])
+  const selectedCloudSchedule = cloudSchedules.find(
+    (schedule) => schedule.id === selectedCloudId
+  )
 
   useEffect(() => {
     if (sectionIds.length === 0) {
@@ -90,6 +114,67 @@ export function PlannerClient() {
   function store(ids: string[]) {
     window.localStorage.setItem(STORAGE_KEY, serializeSchedule(ids))
     window.dispatchEvent(new Event('cuweave:planner-changed'))
+  }
+
+  function selectCloudSchedule(id: string) {
+    if (id) localStorage.setItem(CLOUD_SCHEDULE_KEY, id)
+    else localStorage.removeItem(CLOUD_SCHEDULE_KEY)
+    window.dispatchEvent(new Event('cuweave:cloud-schedule-changed'))
+  }
+
+  async function saveCloudCopy() {
+    const response = await fetch('/api/v1/schedules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: `Planner ${new Date().toLocaleDateString('en-HK')}`,
+        sectionIds,
+      }),
+    })
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string
+      schedule?: SavedScheduleRecord
+    }
+    if (response.ok && data.schedule) {
+      const saved = data.schedule
+      setCloudSchedules((current) => [saved, ...current])
+      selectCloudSchedule(saved.id)
+    }
+    setCloudMessage(
+      response.ok
+        ? 'Saved as a new cloud schedule. Open Schedules to rename or share it.'
+        : (data.error ?? 'Cloud save failed.')
+    )
+  }
+
+  async function updateCloudSchedule() {
+    const selected = selectedCloudSchedule
+    if (!selected) {
+      await saveCloudCopy()
+      return
+    }
+    const response = await fetch(`/api/v1/schedules/${selected.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: selected.version, sectionIds }),
+    })
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string
+      schedule?: SavedScheduleRecord
+    }
+    if (response.ok && data.schedule) {
+      const updated = data.schedule
+      setCloudSchedules((current) =>
+        current.map((schedule) =>
+          schedule.id === updated.id ? updated : schedule
+        )
+      )
+    }
+    setCloudMessage(
+      response.ok
+        ? `Updated ${selected.name} with optimistic conflict protection.`
+        : (data.error ?? 'Cloud update failed.')
+    )
   }
 
   const visibleSections = useMemo(
@@ -130,7 +215,8 @@ export function PlannerClient() {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-950/15 bg-white/65 p-4">
         <p className="text-sm text-slate-600">
           <strong className="text-slate-900">{sectionIds.length}</strong>{' '}
-          selected sections · saved locally
+          selected sections · saved locally{' '}
+          {signedIn ? `· ${cloudSchedules.length} cloud schedules` : ''}
         </p>
         <div className="flex gap-2">
           <Link
@@ -139,6 +225,38 @@ export function PlannerClient() {
           >
             Add courses
           </Link>
+          {signedIn ? (
+            <>
+              {cloudSchedules.length ? (
+                <select
+                  aria-label="Cloud schedule target"
+                  className="field !w-auto !py-2"
+                  onChange={(event) => selectCloudSchedule(event.target.value)}
+                  value={selectedCloudSchedule?.id ?? ''}
+                >
+                  <option value="">New cloud copy</option>
+                  {cloudSchedules.map((schedule) => (
+                    <option key={schedule.id} value={schedule.id}>
+                      {schedule.name}
+                    </option>
+                  ))}
+                </select>
+              ) : null}
+              <button
+                className="button-primary"
+                onClick={() => void updateCloudSchedule()}
+                type="button"
+              >
+                {selectedCloudSchedule
+                  ? 'Update cloud schedule'
+                  : 'Save cloud copy'}
+              </button>
+            </>
+          ) : (
+            <Link className="button-primary" href="/sign-in">
+              Sign in to sync
+            </Link>
+          )}
           <button
             className="rounded-full border border-red-900/20 px-4 py-2 text-sm font-bold text-red-800"
             onClick={() => store([])}
@@ -148,6 +266,15 @@ export function PlannerClient() {
           </button>
         </div>
       </div>
+
+      {cloudMessage ? (
+        <p
+          className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-950"
+          role="status"
+        >
+          {cloudMessage}
+        </p>
+      ) : null}
 
       {unavailable && sectionIds.length > 0 ? (
         <div className="rounded-2xl border border-amber-900/20 bg-amber-50 p-5 text-amber-950">
