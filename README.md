@@ -8,9 +8,9 @@ for students at The Chinese University of Hong Kong.
 
 ## Current status
 
-Fast-track Milestone 1 provides a working Web slice: local pinned course-data imports, searchable
-course and section pages, and a browser-local weekly planner with confirmed and uncertain conflict
-reporting. Accounts, reviews, programme requirements, and cloud synchronization remain deferred.
+The Public Beta Web experience integrates searchable courses, detailed offerings and meetings, a
+hybrid local/cloud planner, favorites, structured reviews, private sharing, and basic moderation.
+Programme requirements, production deployment, and live upstream fetching remain deferred.
 
 The repository does not contain real course JSON. Tests and CI use independently synthetic data;
 developers may validate local read-only files from an audited upstream checkout.
@@ -32,10 +32,20 @@ pnpm install --frozen-lockfile
 cd services/ingest && uv sync --frozen && cd ../..
 pnpm db:up
 pnpm db:migrate
+pnpm ingest import tests/fixtures/synthetic-subject.json \
+  --manifest tests/fixtures/synthetic-manifest.json
+pnpm dev:seed
 pnpm dev
 ```
 
-Open <http://localhost:3000>, browse `/courses`, or open `/planner`.
+Open <http://localhost:3000>, browse `/courses`, or open `/planner`. With
+`AUTH_DEV_MODE=true`, request a link at `/sign-in` and continue through the local-only link shown in
+the page. The synthetic accounts are `student@cuweave.local` and `moderator@cuweave.local`.
+
+Production authentication requires a unique `BETTER_AUTH_SECRET`, the canonical
+`BETTER_AUTH_URL`, and `AUTH_SMTP_URL` / `AUTH_EMAIL_FROM`. Development link preview is forcibly
+disabled in production. Database and authentication credentials are server-only and must never use
+the `NEXT_PUBLIC_` prefix.
 
 ## Import local pinned course data
 
@@ -47,9 +57,32 @@ pnpm ingest validate "$INPUT" --manifest "$MANIFEST"
 DATABASE_URL="$DATABASE_URL" pnpm ingest import "$INPUT" --manifest "$MANIFEST"
 ```
 
-For the audited Another Planner checkout, `INPUT` may point to
-`data/2026-27/IERG.json` or `data/2026-27/ENGG.json` outside this repository. Do not copy those
-files into CUWeave.
+For the audited Another Planner checkout, import both approved 2026-27 subjects with one command:
+
+```bash
+CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
+  DATABASE_URL="$DATABASE_URL" pnpm data:import:local
+```
+
+The helper verifies revision `6c9ea314ff5595dd90a88bbbdae8d286408d85f3`, builds provenance
+metadata, validates, and imports `IERG.json` and `ENGG.json` directly from the checkout. It fails on
+another revision and never copies those files into CUWeave.
+
+## Public Beta behavior
+
+- Anonymous schedules stay in versioned browser storage. Signed-in users can save, rename, update,
+  duplicate, delete, or import local schedules. Cloud writes use optimistic versions.
+- Read-only schedule links use high-entropy tokens; only hashes are stored, owner identity is not
+  exposed, and links can be revoked.
+- Favorites are private to the account and link back to the course hub and planner.
+- Reviews are scoped to an exact offering and optional instructor, support six rating dimensions,
+  preserve edit history, and can be anonymous. Public anonymous responses redact account identity.
+- One vote per user/review, structured reports, role-gated moderation, and resolution audit fields
+  provide the initial community-safety boundary.
+
+See [accounts and privacy](docs/product/accounts-and-privacy.md),
+[reviews and moderation](docs/product/reviews-and-moderation.md), and the
+[authentication ADR](docs/decisions/0004-better-auth-database-sessions.md).
 
 ## Core commands
 
@@ -58,6 +91,9 @@ files into CUWeave.
 | `pnpm dev`                    | Start the Web development server                        |
 | `pnpm build`                  | Build Web without requiring a reachable database        |
 | `pnpm ingest ...`             | Validate or import one local subject/year snapshot      |
+| `pnpm data:import:local`      | Import pinned local IERG and ENGG source files          |
+| `pnpm dev:seed`               | Reset deterministic synthetic accounts and product data |
+| `pnpm role:grant EMAIL ROLE`  | Grant a local account `user`, `moderator`, or `admin`   |
 | `pnpm lint`                   | Run TypeScript and Python lint checks                   |
 | `pnpm format:check`           | Verify TypeScript, documentation, and Python formatting |
 | `pnpm typecheck`              | Type-check all TypeScript workspaces                    |
@@ -72,9 +108,9 @@ files into CUWeave.
 ## Repository structure
 
 ```text
-apps/web/          Next.js course explorer, detail pages, planner, and HTTP boundary
+apps/web/          Next.js public-beta UI, authentication, and HTTP boundary
 packages/config/   Shared lint configuration
-packages/db/       Drizzle schema, request-time course queries, and migrations
+packages/db/       Drizzle schema, authorized product services, and migrations
 packages/domain/   Framework-independent health contracts
 packages/planner/  Framework-independent conflict and schedule semantics
 services/ingest/   Local-file validation and transactional academic imports
