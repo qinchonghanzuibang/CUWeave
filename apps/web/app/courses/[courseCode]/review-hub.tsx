@@ -180,18 +180,18 @@ export function ReviewHub({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category: 'incorrect', explanation }),
     })
+    const data = (await response.json()) as { error?: string }
     setMessage(
       response.ok
         ? 'Review reported for moderator review.'
-        : 'Report could not be submitted.'
+        : data.error === 'You already reported this review.'
+          ? 'You already reported this review.'
+          : 'Report could not be submitted.'
     )
   }
 
   return (
-    <section
-      className="mt-12 border-t border-emerald-950/10 pt-10"
-      id="reviews"
-    >
+    <section className="mt-12 border-t border-purple-950/10 pt-10" id="reviews">
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div>
           <span className="eyebrow">Community context</span>
@@ -212,7 +212,7 @@ export function ReviewHub({
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {ratingDimensions.map((dimension) => (
           <div
-            className="rounded-2xl border border-emerald-950/10 bg-white/65 p-4"
+            className="rounded-2xl border border-purple-950/10 bg-white/65 p-4"
             key={dimension}
           >
             <p className="text-xs font-bold text-slate-500">
@@ -439,7 +439,7 @@ export function ReviewHub({
         <div className="space-y-4">
           {message ? (
             <p
-              className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-950"
+              className="rounded-xl bg-purple-50 p-3 text-sm text-purple-950"
               role="status"
             >
               {message}
@@ -457,7 +457,7 @@ export function ReviewHub({
                       : ' · course-level'}
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-black text-emerald-900">
+                <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-black text-purple-900">
                   {review.ratings.overall}/5 overall
                 </span>
               </div>
@@ -533,7 +533,7 @@ export function ReviewHub({
             </article>
           ))}
           {!reviews.length ? (
-            <div className="rounded-3xl border border-dashed border-emerald-950/20 p-10 text-center">
+            <div className="rounded-3xl border border-dashed border-purple-950/20 p-10 text-center">
               <h3 className="text-xl font-black">
                 No reviews under these filters.
               </h3>

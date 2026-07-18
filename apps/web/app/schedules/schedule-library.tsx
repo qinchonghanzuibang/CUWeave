@@ -127,7 +127,7 @@ export function ScheduleLibrary({
       </section>
       {message ? (
         <p
-          className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-950"
+          className="rounded-xl bg-purple-50 p-3 text-sm text-purple-950"
           role="status"
         >
           {message}
@@ -189,7 +189,7 @@ export function ScheduleLibrary({
           </article>
         ))}
         {!schedules.length ? (
-          <div className="rounded-3xl border border-dashed border-emerald-950/20 p-10 text-center text-slate-600">
+          <div className="rounded-3xl border border-dashed border-purple-950/20 p-10 text-center text-slate-600">
             No cloud schedules yet. Import the timetable already in this
             browser.
           </div>

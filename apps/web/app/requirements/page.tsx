@@ -14,6 +14,11 @@ import { getViewer } from '../../lib/session'
 import { RequirementChecker } from './requirement-checker'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = {
+  title: 'Requirement checker · CUWeave',
+  description:
+    'Review draft, source-backed requirement checks with unsupported and uncertain rules shown explicitly.',
+}
 export const revalidate = 0
 
 export default async function RequirementsPage({
@@ -84,10 +89,7 @@ export default async function RequirementsPage({
       )}
       {!viewer ? (
         <p className="mt-6 text-sm text-slate-600">
-          <Link
-            className="font-bold text-emerald-800 underline"
-            href="/sign-in"
-          >
+          <Link className="font-bold text-purple-800 underline" href="/sign-in">
             Sign in
           </Link>{' '}
           to combine favorites, cloud schedules, and manual course choices.
@@ -96,3 +98,4 @@ export default async function RequirementsPage({
     </main>
   )
 }
+import type { Metadata } from 'next'

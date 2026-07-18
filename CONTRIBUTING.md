@@ -15,7 +15,7 @@ tested so student contributors can maintain them.
 Create schema changes through Drizzle, review generated SQL, and prove that every committed
 migration applies to a clean database. Never edit an already-released migration.
 
-Development magic-link sign-in requires `AUTH_DEV_MODE=true` and is disabled whenever
+Development OTP sign-in overrides require `AUTH_DEV_MODE=true` and are disabled whenever
 `NODE_ENV=production`. Grant an existing local account moderator access with
 `pnpm role:grant email@example.test moderator`; never edit production roles directly.
 

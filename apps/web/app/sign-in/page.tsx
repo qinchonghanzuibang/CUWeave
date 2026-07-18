@@ -13,10 +13,10 @@ export default async function SignInPage() {
     <main className="page-shell py-12 sm:py-16">
       <div className="mx-auto mb-8 max-w-2xl text-center">
         <span className="eyebrow">Private by default</span>
-        <h1 className="page-title mt-4">Sign in without another password.</h1>
+        <h1 className="page-title mt-4">Your CUHK email. One short code.</h1>
         <p className="page-lead mx-auto mt-4">
-          A short-lived email link opens your schedules, favorites, and review
-          tools. Email ownership is not proof of current CUHK enrollment.
+          We send a one-time code only to an exact @link.cuhk.edu.hk address.
+          Email ownership is not proof of current CUHK enrollment.
         </p>
       </div>
       {available ? (

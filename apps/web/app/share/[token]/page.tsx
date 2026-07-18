@@ -1,8 +1,10 @@
 import { getSectionsByIds, getSharedSchedule } from '@cuweave/db'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 export default async function SharedSchedulePage({
   params,
@@ -26,7 +28,7 @@ export default async function SharedSchedulePage({
       <div className="mt-8 grid gap-4 md:grid-cols-2">
         {sections.map((section) => (
           <article className="panel p-5" key={section.id}>
-            <p className="font-black text-emerald-800">{section.courseCode}</p>
+            <p className="font-black text-purple-800">{section.courseCode}</p>
             <h2 className="mt-1 text-xl font-black">{section.label}</h2>
             <p className="mt-1 text-sm text-slate-600">{section.termName}</p>
             <div className="mt-4 space-y-2">

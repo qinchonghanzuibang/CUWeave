@@ -1,9 +1,15 @@
 import { listSavedSchedules } from '@cuweave/db'
+import type { Metadata } from 'next'
 
 import { getViewer } from '../../lib/session'
 import { PlannerClient } from './planner-client'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = {
+  title: 'Local planner · CUWeave',
+  description:
+    'Compare course sections locally while preserving uncertain teaching dates.',
+}
 
 export default async function PlannerPage() {
   const viewer = await getViewer()

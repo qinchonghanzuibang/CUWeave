@@ -9,16 +9,18 @@ CUWeave must not implement authentication tokens, cookie signing, or session exp
 
 ## Decision
 
-Use Better Auth with its Drizzle adapter, magic-link plugin, and Next.js integration. Store users,
-accounts, sessions, and hashed one-time verification tokens in PostgreSQL. Use HTTP-only cookies,
-secure cookies in production, a 14-day server session, and server-side route authorization.
+Use Better Auth with its Drizzle adapter, Email OTP plugin, and Next.js integration. Store users,
+accounts, sessions, and hashed one-time verification tokens in PostgreSQL. Public access accepts
+only the exact `link.cuhk.edu.hk` domain. Codes are six digits, expire in five minutes, rotate on
+resend, and allow three attempts. Use HTTP-only cookies, secure cookies in production, a 14-day
+server session, and server-side route authorization.
 
-Local development stores the most recent magic link in process memory only when
+Local and CI environments may use an explicit test domain and fixed code only when
 `AUTH_DEV_MODE=true` and the process is not production. Deployments must configure a unique
 `BETTER_AUTH_SECRET`, canonical `BETTER_AUTH_URL`, `AUTH_SMTP_URL`, and `AUTH_EMAIL_FROM`.
 
-Email-domain ownership may support a future `verified_cuhk_email` flag, but is not evidence of
-current enrollment. Account deactivation revokes sessions and removes the sign-in email from the
+Email-domain ownership sets `verified_cuhk_email`, but is not evidence of current enrollment.
+Account deactivation revokes sessions and removes the sign-in email from the
 active account record while preserving authored community records for audit integrity.
 
 ## Consequences

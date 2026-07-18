@@ -2,12 +2,26 @@ import { expect, test, type Page } from '@playwright/test'
 
 async function developmentSignIn(page: Page, email: string) {
   await page.goto('/sign-in')
-  await page.getByLabel('Email address').fill(email)
-  await page.getByRole('button', { name: 'Email me a sign-in link' }).click()
-  await page
-    .getByRole('link', { name: 'Continue with development sign-in' })
-    .click()
+  await page.getByLabel('CUHK student email').fill(email)
+  await page.getByRole('button', { name: 'Send verification code' }).click()
+  await page.getByLabel('Six-digit code').fill('123456')
+  await page.getByRole('button', { name: 'Verify and sign in' }).click()
+  await page.waitForURL('/profile')
 }
+
+test('rejects an invalid OTP without revealing account state', async ({
+  page,
+}) => {
+  await page.goto('/sign-in')
+  await page.getByLabel('CUHK student email').fill('invalid-code@cuweave.local')
+  await page.getByRole('button', { name: 'Send verification code' }).click()
+  await page.getByLabel('Six-digit code').fill('000000')
+  await page.getByRole('button', { name: 'Verify and sign in' }).click()
+  await expect(page.getByRole('status')).toHaveText(
+    'The code is invalid or expired.'
+  )
+  await expect(page).toHaveURL(/\/sign-in/)
+})
 
 test('signs in, saves a schedule, favorites, reviews, shares, and moderates', async ({
   page,
@@ -46,13 +60,21 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
   await page.getByRole('button', { name: 'Publish review' }).click()
   await expect(page.getByText('Review published.')).toBeVisible()
 
+  const targetReview = page.locator('article', {
+    hasText:
+      'Synthetic review for exercising Public Beta ratings and moderation without using real student content.',
+  })
+  await targetReview.getByRole('button', { name: /Helpful/ }).click()
+  await expect(
+    targetReview.getByRole('button', { name: /Helpful · 1/ })
+  ).toBeVisible()
   page.once(
     'dialog',
     (dialog) => void dialog.accept('Synthetic Playwright report.')
   )
-  await page.getByRole('button', { name: 'Report' }).first().click()
+  await targetReview.getByRole('button', { name: 'Report' }).click()
   await expect(
-    page.getByText('Review reported for moderator review.')
+    page.getByText(/Review reported for moderator review|already reported/)
   ).toBeVisible()
 
   await page.getByRole('button', { name: 'Add to planner' }).first().click()
@@ -70,6 +92,9 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
   expect(sharePath).toBeTruthy()
   await page.goto(sharePath ?? '/')
   await expect(page.getByText('Read-only share')).toBeVisible()
+  await page.goto('/schedules')
+  await page.getByRole('button', { name: 'Revoke share' }).first().click()
+  await expect(page.getByRole('status')).toContainText('Share link revoked.')
 
   await page.getByRole('button', { name: 'Sign out' }).click()
   await page.waitForURL('/')

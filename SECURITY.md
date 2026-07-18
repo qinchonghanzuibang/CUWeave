@@ -11,7 +11,7 @@ CUWeave will never ask for CUHK passwords, OnePass credentials, student IDs, or 
 surface appears to request them, stop using it and report it immediately.
 
 Authentication collects an email address only. A CUHK email-domain flag must not be interpreted as
-proof of current enrollment. Database URLs, authentication secrets, SMTP credentials, magic links,
+proof of current enrollment. Database URLs, authentication secrets, SMTP credentials, OTPs,
 session cookies, schedule share tokens, and moderation notes are sensitive. They must never be
 logged, exposed through `NEXT_PUBLIC_*`, committed, or returned from public APIs. Anonymous review
 responses must not contain the author's account identifier or email address.

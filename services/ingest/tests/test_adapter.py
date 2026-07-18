@@ -71,3 +71,26 @@ def test_unknown_term_is_rejected() -> None:
     document["courses"][0]["terms"][0]["term_name"] = "2099-00 Special Session"
     with pytest.raises(ImportValidationError):
         adapt(json.dumps(document).encode(), manifest)
+
+
+def test_midnight_placeholder_is_preserved_as_unknown_warning() -> None:
+    raw, manifest = load()
+    document = json.loads(raw)
+    document["courses"][0]["terms"][0]["schedule"][0]["meetings"][0]["time"] = (
+        "Mo 12:00AM - 12:00AM"
+    )
+    snapshot = adapt(json.dumps(document).encode(), manifest)
+    meeting = snapshot.courses[0].offerings[0].sections[0].meetings[0]
+    assert meeting.time_raw == "Mo 12:00AM - 12:00AM"
+    assert meeting.time_status == "unknown"
+    assert any(warning["code"] == "MALFORMED_MEETING_TIME" for warning in snapshot.warnings)
+
+
+def test_explicit_medicine_academic_year_term_is_supported() -> None:
+    raw, manifest = load()
+    document = json.loads(raw)
+    term = document["courses"][0]["terms"][0]
+    term["term_code"] = "MED"
+    term["term_name"] = "2099-00 Acad Year (Medicine)"
+    snapshot = adapt(json.dumps(document).encode(), manifest)
+    assert snapshot.courses[0].offerings[0].term_key == "academic-year"

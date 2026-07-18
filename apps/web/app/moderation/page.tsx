@@ -1,10 +1,12 @@
 import { listModerationReports } from '@cuweave/db'
 import { notFound, redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 
 import { getViewer } from '../../lib/session'
 import { ModerationQueue } from './moderation-queue'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 export default async function ModerationPage() {
   const viewer = await getViewer()

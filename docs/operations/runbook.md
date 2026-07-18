@@ -5,7 +5,7 @@
 1. Review migration SQL and generate again; no unexpected migration may appear.
 2. Take or confirm a managed PostgreSQL backup and record its provider snapshot identifier outside the repository.
 3. Apply migrations from a trusted operator environment with the direct migration URL.
-4. Seed requirement metadata and import only locally reviewed, pinned IERG/ENGG files when approved.
+4. Seed requirement metadata, then validate and import the complete locally reviewed, pinned subject manifest when approved.
 5. Deploy the immutable application revision, request `/api/v1/health`, then run `pnpm smoke`.
 
 The health endpoint reports readiness only when the database responds and the expected schema marker exists. It never returns hosts, versions, paths, credentials, or stack traces.
@@ -26,7 +26,7 @@ Application rollback uses Vercel's previous immutable deployment. If a migration
 
 ## Logging
 
-Server logs are single-line structured JSON with event name, level, timestamp, and request ID. Redaction removes email, tokens, cookies, authorization, secrets, raw IPs, hosts, and filesystem paths. Do not log magic links, review author identity in public handlers, database errors, query text, or environment values.
+Server logs are single-line structured JSON with event name, level, timestamp, and request ID. Redaction removes email, tokens, cookies, authorization, secrets, raw IPs, hosts, and filesystem paths. Do not log OTPs, review author identity in public handlers, database errors, query text, or environment values.
 
 ## Moderation operations
 

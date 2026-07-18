@@ -147,6 +147,15 @@ def import_snapshot(
                 snapshot_id = cursor.fetchone()["id"]
                 cursor.execute(
                     """
+                    update import_run set status = 'failed', finished_at = now(),
+                      error_code = 'INTERRUPTED_IMPORT_RETRIED'
+                    where snapshot_id = %s and adapter_name = %s and adapter_version = %s
+                      and status = 'running'
+                    """,
+                    (snapshot_id, ADAPTER_NAME, ADAPTER_VERSION),
+                )
+                cursor.execute(
+                    """
                     select id from import_run
                     where snapshot_id = %s and adapter_name = %s and adapter_version = %s
                       and status = 'succeeded'

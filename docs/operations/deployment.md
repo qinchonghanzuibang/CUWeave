@@ -32,13 +32,18 @@ DATABASE_URL="$APP_POOL_URL" DATABASE_MIGRATION_URL="$DIRECT_URL" \
 # Seed the reviewed draft requirement metadata.
 DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm requirements:seed
 
-# Import approved local IERG and ENGG files at the audited revision.
+# Validate and import every approved 2026-27 manifest subject at the audited revision.
 CUWEAVE_UPSTREAM_DIR=/read-only/audited/another-cuhk-course-planner \
-  DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm data:import:local
+  pnpm data:validate:all --format text
+CUWEAVE_UPSTREAM_DIR=/read-only/audited/another-cuhk-course-planner \
+  DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm data:import:all --format text
+
+# Revoke sessions/auth access for staging accounts outside the public student domain.
+DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm auth:revoke-ineligible --apply
 
 # Bootstrap roles after the account has signed in once.
 DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true \
-  pnpm role:grant maintainer@example.org admin
+  pnpm role:grant maintainer@link.cuhk.edu.hk admin
 
 # Readiness and non-destructive route checks.
 curl --fail-with-body https://cuweave.example/api/v1/health

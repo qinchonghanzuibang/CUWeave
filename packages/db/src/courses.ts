@@ -51,15 +51,27 @@ export interface CourseSearchOptions {
   query?: string
   subject?: string
   term?: string
+  page?: number
+  pageSize?: number
+}
+
+export interface CourseSearchResult {
+  items: CourseSearchItem[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
 }
 
 export async function searchCourses(
   options: CourseSearchOptions = {}
-): Promise<CourseSearchItem[]> {
+): Promise<CourseSearchResult> {
   const { pool } = getDatabaseConnection()
   const query = options.query?.trim() ?? ''
   const subject = options.subject?.trim().toUpperCase() ?? ''
   const term = options.term?.trim() ?? ''
+  const pageSize = Math.min(Math.max(options.pageSize ?? 24, 1), 50)
+  const page = Math.max(options.page ?? 1, 1)
   const result = await pool.query<{
     course_id: string
     code: string
@@ -71,6 +83,7 @@ export async function searchCourses(
     terms: string[]
     source_name: string
     imported_at: Date
+    total: number
   }>(
     `
       select
@@ -82,23 +95,28 @@ export async function searchCourses(
         v.academic_year,
         array_agg(distinct o.term_key order by o.term_key) as terms,
         s.source_name,
-        max(r.finished_at) as imported_at
+        max(r.finished_at) as imported_at,
+        count(*) over()::integer as total
       from course c
       join course_catalog_version v on v.course_id = c.id and v.valid_to_import_run_id is null
       join course_offering o on o.course_id = c.id and o.valid_to_import_run_id is null
       join source_snapshot s on s.id = v.last_seen_snapshot_id
       join import_run r on r.id = v.valid_from_import_run_id
-      where ($1 = '' or c.subject_code || c.catalog_number ilike $1 || '%' or v.title ilike '%' || $1 || '%')
+      where v.academic_year = coalesce(
+          (select academic_year from catalog_coverage order by academic_year desc limit 1),
+          v.academic_year
+        )
+        and ($1 = '' or c.subject_code || c.catalog_number ilike $1 || '%' or v.title ilike '%' || $1 || '%')
         and ($2 = '' or c.subject_code = $2)
         and ($3 = '' or o.term_key = $3)
       group by c.id, c.subject_code, c.catalog_number, v.id, v.title, v.credits,
         v.academic_year, s.source_name
       order by c.subject_code, c.catalog_number
-      limit 100
+      limit $4 offset $5
     `,
-    [query, subject, term]
+    [query, subject, term, pageSize, (page - 1) * pageSize]
   )
-  return result.rows.map((row) => ({
+  const items = result.rows.map((row) => ({
     code: row.code,
     subject: row.subject,
     catalogNumber: row.catalog_number,
@@ -109,6 +127,77 @@ export async function searchCourses(
     sourceName: row.source_name,
     importedAt: row.imported_at.toISOString(),
   }))
+  const total = result.rows[0]?.total ?? 0
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  }
+}
+
+export async function listCourseSubjects(): Promise<string[]> {
+  const { pool } = getDatabaseConnection()
+  const result = await pool.query<{ subject_code: string }>(
+    `select distinct c.subject_code from course c
+     join course_catalog_version v on v.course_id=c.id and v.valid_to_import_run_id is null
+     where v.academic_year = coalesce(
+       (select academic_year from catalog_coverage order by academic_year desc limit 1),
+       v.academic_year
+     )
+     order by c.subject_code`
+  )
+  return result.rows.map((row) => row.subject_code)
+}
+
+export interface CatalogCoverage {
+  academicYear: string
+  status: 'complete' | 'partial'
+  upstreamRevision: string
+  expectedSubjectCount: number
+  discoveredFileCount: number
+  importedSubjectCount: number
+  courseCount: number
+  offeringCount: number
+  sectionCount: number
+  instructorCount: number
+  warningCount: number
+  importedAt: string
+}
+
+export async function getCatalogCoverage(): Promise<CatalogCoverage | null> {
+  const { pool } = getDatabaseConnection()
+  const result = await pool.query<{
+    academic_year: string
+    status: 'complete' | 'partial'
+    upstream_revision: string
+    expected_subject_count: number
+    discovered_file_count: number
+    imported_subject_count: number
+    course_count: number
+    offering_count: number
+    section_count: number
+    instructor_count: number
+    warning_count: number
+    imported_at: Date
+  }>(`select * from catalog_coverage order by academic_year desc limit 1`)
+  const row = result.rows[0]
+  if (!row) return null
+  return {
+    academicYear: row.academic_year,
+    status: row.status,
+    upstreamRevision: row.upstream_revision.trim(),
+    expectedSubjectCount: row.expected_subject_count,
+    discoveredFileCount: row.discovered_file_count,
+    importedSubjectCount: row.imported_subject_count,
+    courseCount: row.course_count,
+    offeringCount: row.offering_count,
+    sectionCount: row.section_count,
+    instructorCount: row.instructor_count,
+    warningCount: row.warning_count,
+    importedAt: row.imported_at.toISOString(),
+  }
 }
 
 export async function getCourseDetail(

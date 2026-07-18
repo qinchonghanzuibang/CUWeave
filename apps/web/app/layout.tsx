@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import Link from 'next/link'
 
 import { getRepositoryUrl } from '../lib/repository-url'
@@ -7,10 +7,18 @@ import './globals.css'
 import { SignOutButton } from './user-menu'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'),
   title: 'CUWeave',
   description:
     'An unofficial, student-led academic planning platform for CUHK students.',
+  openGraph: {
+    title: 'CUWeave',
+    description: 'Explore CUHK courses and plan with explicit uncertainty.',
+    type: 'website',
+  },
 }
+
+export const viewport: Viewport = { themeColor: '#750F6D' }
 
 export const dynamic = 'force-dynamic'
 
@@ -22,21 +30,21 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="sticky top-0 z-40 border-b border-emerald-950/10 bg-[rgb(250_249_245/88%)] backdrop-blur-xl">
+        <header className="sticky top-0 z-40 border-b border-purple-950/10 bg-[rgb(250_249_245/88%)] backdrop-blur-xl">
           <nav className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
             <Link
-              className="flex items-center gap-2 text-xl font-black tracking-tight text-emerald-950"
+              className="flex items-center gap-2 text-xl font-black tracking-tight text-purple-950"
               href="/"
             >
-              <span className="grid size-8 place-items-center rounded-xl bg-emerald-900 text-sm text-white">
+              <span className="grid size-8 place-items-center rounded-xl bg-purple-900 text-sm text-white">
                 CW
               </span>
               CUWeave{' '}
-              <span className="hidden text-xs font-bold uppercase tracking-widest text-emerald-700 sm:inline">
+              <span className="hidden text-xs font-bold uppercase tracking-widest text-purple-700 sm:inline">
                 Beta
               </span>
             </Link>
-            <div className="flex w-full min-w-0 flex-none items-center justify-start gap-1 overflow-x-auto text-sm font-semibold text-slate-700 sm:w-auto sm:flex-1 sm:justify-end">
+            <div className="flex w-full min-w-0 flex-none flex-wrap items-center justify-start gap-1 text-sm font-semibold text-slate-700 sm:w-auto sm:flex-1 sm:justify-end">
               <Link className="nav-link" href="/">
                 Home
               </Link>
@@ -91,7 +99,7 @@ export default async function RootLayout({
           </nav>
         </header>
         {children}
-        <footer className="mt-16 border-t border-emerald-950/10 bg-white/35">
+        <footer className="mt-16 border-t border-purple-950/10 bg-white/35">
           <div className="page-shell flex flex-col justify-between gap-5 py-8 text-sm text-slate-600 sm:flex-row">
             <p>CUWeave is unofficial. Verify final details in CUSIS.</p>
             <nav
@@ -102,6 +110,8 @@ export default async function RootLayout({
               <Link href="/terms">Terms</Link>
               <Link href="/community-guidelines">Community</Link>
               <Link href="/moderation-policy">Moderation</Link>
+              <Link href="/data-status">Data status</Link>
+              <Link href="/feedback">Feedback</Link>
             </nav>
           </div>
         </footer>

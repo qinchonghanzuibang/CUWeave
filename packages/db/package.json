@@ -15,6 +15,7 @@
     "dev:seed": "tsx src/seed-development.ts",
     "requirements:seed": "tsx src/seed-requirements.ts",
     "role:grant": "tsx src/grant-role.ts",
+    "auth:revoke-ineligible": "tsx src/revoke-ineligible-auth.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

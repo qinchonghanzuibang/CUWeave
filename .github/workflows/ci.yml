@@ -120,6 +120,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://cuweave:ci-only@127.0.0.1:5432/cuweave
       AUTH_DEV_MODE: 'true'
+      AUTH_TEST_EMAIL_DOMAIN: cuweave.local
+      AUTH_TEST_OTP: '123456'
       BETTER_AUTH_SECRET: ci-playwright-secret-that-is-at-least-32-characters
       BETTER_AUTH_URL: http://127.0.0.1:3100
     steps:

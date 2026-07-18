@@ -1,11 +1,17 @@
 import { listFavorites, listSavedSchedules } from '@cuweave/db'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
 import { getHealthStatus } from '../lib/status'
 import { getViewer } from '../lib/session'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const metadata: Metadata = {
+  title: 'CUWeave · CUHK course planning, woven together',
+  description:
+    'Explore pinned CUHK course data, plan schedules, and keep academic uncertainty visible.',
+}
 
 function StatusBadge({
   ready,
@@ -17,13 +23,11 @@ function StatusBadge({
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${
-        ready
-          ? 'bg-emerald-100 text-emerald-900'
-          : 'bg-amber-100 text-amber-950'
+        ready ? 'bg-purple-100 text-purple-900' : 'bg-amber-100 text-amber-950'
       }`}
     >
       <span
-        className={`h-2 w-2 rounded-full ${ready ? 'bg-emerald-600' : 'bg-amber-600'}`}
+        className={`h-2 w-2 rounded-full ${ready ? 'bg-purple-600' : 'bg-amber-600'}`}
       />
       {children}
     </span>
@@ -78,10 +82,10 @@ export default async function Home() {
     <main className="page-shell flex min-h-[calc(100vh-73px)] flex-col py-8 sm:py-12">
       <section className="grid flex-1 items-center gap-10 py-14 lg:grid-cols-[1.2fr_0.8fr] lg:py-20">
         <div>
-          <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-emerald-800">
+          <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-purple-800">
             CUWeave Public Beta
           </p>
-          <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-[-0.045em] text-emerald-950 sm:text-7xl">
+          <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-[-0.045em] text-purple-950 sm:text-7xl">
             One calmer place to shape your CUHK term.
           </h1>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl">
@@ -105,11 +109,11 @@ export default async function Home() {
         </div>
 
         <aside className="panel p-6 sm:p-8">
-          <h2 className="text-xl font-extrabold text-emerald-950">
+          <h2 className="text-xl font-extrabold text-purple-950">
             System status
           </h2>
           <dl className="mt-6 space-y-5">
-            <div className="flex items-center justify-between gap-4 border-b border-emerald-950/10 pb-5">
+            <div className="flex items-center justify-between gap-4 border-b border-purple-950/10 pb-5">
               <dt className="text-slate-600">Application</dt>
               <dd>
                 <StatusBadge ready>Live</StatusBadge>
@@ -138,7 +142,7 @@ export default async function Home() {
             href={card.href}
             key={card.number}
           >
-            <span className="text-xs font-black text-emerald-700">
+            <span className="text-xs font-black text-purple-700">
               {card.number}
             </span>
             <h2 className="mt-8 text-xl font-black">{card.title}</h2>
@@ -147,7 +151,7 @@ export default async function Home() {
         ))}
       </section>
 
-      <footer className="grid gap-3 border-t border-emerald-950/15 py-6 text-sm leading-6 text-slate-600 sm:grid-cols-2">
+      <footer className="grid gap-3 border-t border-purple-950/15 py-6 text-sm leading-6 text-slate-600 sm:grid-cols-2">
         <p>
           CUWeave is unofficial and is not affiliated with or endorsed by CUHK.
         </p>

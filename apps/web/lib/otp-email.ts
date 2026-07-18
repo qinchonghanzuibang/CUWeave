@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 
 type Transport = Pick<ReturnType<typeof nodemailer.createTransport>, 'sendMail'>
 
-export interface MagicLinkEmail {
+export interface OtpEmail {
   from: string
   to: string
   subject: string
@@ -17,21 +17,18 @@ export function validatedSender(value: string | undefined): string {
   return sender
 }
 
-export function magicLinkEmail(
-  email: string,
-  url: string,
-  from: string
-): MagicLinkEmail {
+export function otpEmail(email: string, otp: string, from: string): OtpEmail {
   return {
     from,
     to: email,
-    subject: 'Your CUWeave sign-in link',
+    subject: `${otp} is your CUWeave sign-in code`,
     text: [
-      'Sign in to CUWeave using this single-use link:',
+      'Enter this one-time code to sign in to CUWeave:',
       '',
-      url,
+      otp,
       '',
-      'This link expires in 10 minutes. CUWeave staff will never ask you to forward it.',
+      'This code expires in 5 minutes and can be used only once.',
+      'CUWeave staff will never ask you to share it.',
       'If you did not request this message, you can safely ignore it.',
       '',
       'CUWeave is an unofficial, student-led CUHK planning project.',
@@ -39,9 +36,9 @@ export function magicLinkEmail(
   }
 }
 
-export async function sendProductionMagicLink(
+export async function sendProductionOtp(
   email: string,
-  url: string,
+  otp: string,
   transportFactory: (smtpUrl: string) => Transport = (smtpUrl) =>
     nodemailer.createTransport(smtpUrl)
 ): Promise<void> {
@@ -56,5 +53,5 @@ export async function sendProductionMagicLink(
   if (!['smtp:', 'smtps:'].includes(parsed.protocol))
     throw new Error('AUTH_SMTP_URL must use smtp:// or smtps://.')
   const from = validatedSender(process.env.AUTH_EMAIL_FROM)
-  await transportFactory(smtpUrl).sendMail(magicLinkEmail(email, url, from))
+  await transportFactory(smtpUrl).sendMail(otpEmail(email, otp, from))
 }
