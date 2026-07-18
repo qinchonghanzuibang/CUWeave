@@ -1,6 +1,8 @@
+import { listFavorites, listSavedSchedules } from '@cuweave/db'
 import Link from 'next/link'
 
 import { getHealthStatus } from '../lib/status'
+import { getViewer } from '../lib/session'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -31,38 +33,78 @@ function StatusBadge({
 export default async function Home() {
   const health = await getHealthStatus()
   const databaseReady = health.checks.database === 'ready'
+  const viewer = await getViewer()
+  const [favorites, schedules] =
+    viewer && databaseReady
+      ? await Promise.all([
+          listFavorites(viewer.id),
+          listSavedSchedules(viewer.id),
+        ])
+      : [[], []]
+  const featureCards: Array<{
+    number: string
+    title: string
+    copy: string
+    href: string
+  }> = [
+    {
+      number: '01',
+      title: 'Explore',
+      copy: 'Search imported courses and inspect current sections, instructors, and provenance.',
+      href: '/courses',
+    },
+    {
+      number: '02',
+      title: 'Plan',
+      copy: 'Build locally first, with confirmed conflicts separated from uncertain teaching dates.',
+      href: '/planner',
+    },
+    {
+      number: '03',
+      title: 'Remember',
+      copy: viewer
+        ? `${favorites.length} favorites and ${schedules.length} cloud schedules in your workspace.`
+        : 'Sign in by email to keep favorites and multiple named schedules.',
+      href: viewer ? '/profile' : '/sign-in',
+    },
+    {
+      number: '04',
+      title: 'Review',
+      copy: 'Read and contribute structured, offering-specific ratings without scraping other communities.',
+      href: '/courses',
+    },
+  ]
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-73px)] w-full max-w-6xl flex-col px-5 py-8 sm:px-8 sm:py-12">
+    <main className="page-shell flex min-h-[calc(100vh-73px)] flex-col py-8 sm:py-12">
       <section className="grid flex-1 items-center gap-10 py-14 lg:grid-cols-[1.2fr_0.8fr] lg:py-20">
         <div>
           <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-emerald-800">
-            Fast-track Milestone 1
+            CUWeave Public Beta
           </p>
           <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-[-0.045em] text-emerald-950 sm:text-7xl">
-            Academic planning, thoughtfully woven together.
+            One calmer place to shape your CUHK term.
           </h1>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl">
-            CUWeave is an open-source, student-led project building a unified
-            academic planning experience for students at The Chinese University
-            of Hong Kong.
+            Explore pinned course data, compare community context, catch
+            timetable uncertainty, and keep private schedules together—without
+            giving us your OnePass credentials or student records.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              className="rounded-full bg-emerald-900 px-5 py-3 font-bold text-white"
-              href="/courses"
-            >
+            <Link className="button-primary !px-5 !py-3" href="/courses">
               Explore courses
             </Link>
-            <Link
-              className="rounded-full border border-emerald-900/20 bg-white/60 px-5 py-3 font-bold"
-              href="/planner"
-            >
+            <Link className="button-secondary !px-5 !py-3" href="/planner">
               Open planner
             </Link>
+            {!viewer ? (
+              <Link className="button-secondary !px-5 !py-3" href="/sign-in">
+                Save your work
+              </Link>
+            ) : null}
           </div>
         </div>
 
-        <aside className="rounded-3xl border border-emerald-950/15 bg-white/65 p-6 shadow-[0_24px_80px_-42px_rgba(20,79,59,0.55)] backdrop-blur sm:p-8">
+        <aside className="panel p-6 sm:p-8">
           <h2 className="text-xl font-extrabold text-emerald-950">
             System status
           </h2>
@@ -89,7 +131,23 @@ export default async function Home() {
         </aside>
       </section>
 
-      <footer className="grid gap-3 border-t border-emerald-950/15 pt-6 text-sm leading-6 text-slate-600 sm:grid-cols-2">
+      <section className="grid gap-4 pb-14 sm:grid-cols-2 lg:grid-cols-4">
+        {featureCards.map((card) => (
+          <Link
+            className="panel group p-5 transition hover:-translate-y-1"
+            href={card.href}
+            key={card.number}
+          >
+            <span className="text-xs font-black text-emerald-700">
+              {card.number}
+            </span>
+            <h2 className="mt-8 text-xl font-black">{card.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{card.copy}</p>
+          </Link>
+        ))}
+      </section>
+
+      <footer className="grid gap-3 border-t border-emerald-950/15 py-6 text-sm leading-6 text-slate-600 sm:grid-cols-2">
         <p>
           CUWeave is unofficial and is not affiliated with or endorsed by CUHK.
         </p>

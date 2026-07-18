@@ -11,10 +11,19 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'narrow', use: { ...devices['iPhone 13'] } },
+    {
+      name: 'narrow',
+      use: { ...devices['iPhone 13'], browserName: 'chromium' },
+    },
   ],
   webServer: {
     command: 'pnpm dev --hostname 127.0.0.1 --port 3100',
+    env: {
+      ...process.env,
+      AUTH_DEV_MODE: 'true',
+      BETTER_AUTH_SECRET: 'cuweave-playwright-secret-at-least-32-characters',
+      BETTER_AUTH_URL: 'http://127.0.0.1:3100',
+    },
     url: 'http://127.0.0.1:3100/api/v1/health',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

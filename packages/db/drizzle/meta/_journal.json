@@ -15,6 +15,13 @@
       "when": 1784124151618,
       "tag": "0001_new_dorian_gray",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784306454724,
+      "tag": "0002_optimal_hardball",
+      "breakpoints": true
     }
   ]
 }

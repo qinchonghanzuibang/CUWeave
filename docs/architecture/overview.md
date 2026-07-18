@@ -6,6 +6,7 @@
 local pinned JSON -> services/ingest -> PostgreSQL <- packages/db <- apps/web
                                                         ^
 browser localStorage -> packages/planner ----------------|
+email magic link -> Better Auth -> PostgreSQL sessions ---|
 ```
 
 Drizzle is the only schema and migration authority. The Python ingestion service validates
@@ -17,7 +18,13 @@ handlers are explicitly dynamic; imports and production builds do not contact Po
 
 `packages/planner` is framework-independent and has no React, Next.js, browser, Drizzle, or
 PostgreSQL dependency. The browser stores only a versioned set of selected section IDs and reloads
-current section details through a small versioned route.
+current section details through a small versioned route. Signed-in users can copy that local state
+into private, versioned cloud schedules without changing planner-domain semantics.
+
+Better Auth owns authentication token and session mechanics. CUWeave configures hashed magic-link
+tokens, database sessions, HTTP-only cookies, and server-side authorization. Product data services
+own account status, roles, saved schedules, favorites, reviews, votes, reports, and moderation.
+Route Handlers provide stable HTTP boundaries; page components do not contain authorization rules.
 
 ## Academic history
 
@@ -29,6 +36,8 @@ duplicate academic rows.
 
 ## Product boundaries
 
-The current Web slice provides course search, detail pages, and local timetable planning. CUSIS
-remains authoritative. Authentication, cloud schedules, reviews, programme requirements, live
-scraping, mobile clients, analytics, and production deployment remain deferred.
+The Public Beta Web slice provides course search, unified detail pages, hybrid local/cloud
+planning, favorites, structured reviews, share links, and a small moderation queue. Public review
+queries redact anonymous authors, and share links expose schedule content without owner identity.
+CUSIS remains authoritative. Programme requirements, live scraping, mobile clients, analytics,
+and production deployment remain deferred.

@@ -9,10 +9,15 @@ tested so student contributors can maintain them.
 2. Copy `.env.example` to `.env`; its credentials are for local development only.
 3. Run `pnpm install --frozen-lockfile` and `uv sync --frozen` in `services/ingest`.
 4. Start PostgreSQL and apply migrations with `pnpm db:up && pnpm db:migrate`.
-5. Run `pnpm check` before opening a pull request.
+5. Import synthetic fixture data, then run `pnpm dev:seed` for local accounts and product examples.
+6. Run `pnpm check` before opening a pull request.
 
 Create schema changes through Drizzle, review generated SQL, and prove that every committed
 migration applies to a clean database. Never edit an already-released migration.
+
+Development magic-link sign-in requires `AUTH_DEV_MODE=true` and is disabled whenever
+`NODE_ENV=production`. Grant an existing local account moderator access with
+`pnpm role:grant email@example.test moderator`; never edit production roles directly.
 
 ## Academic and upstream material
 

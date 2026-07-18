@@ -33,3 +33,14 @@ an explicit scope assertion: `complete` may retire missing active records for th
 
 Tests use the independently synthetic `ZZZZ` fixture. Real course information remains local and is
 subject to its source provenance; no real academic JSON is used by CI.
+
+For the audited 2026-27 IERG and ENGG files, the convenience command constructs both manifests,
+validates both inputs, and imports them without writing source files into CUWeave:
+
+```bash
+CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
+  DATABASE_URL="$DATABASE_URL" pnpm data:import:local
+```
+
+The checkout must be exactly revision
+`6c9ea314ff5595dd90a88bbbdae8d286408d85f3`; another revision or a missing file is rejected.

@@ -30,16 +30,14 @@ export default async function CoursesPage({
   }
 
   return (
-    <main className="mx-auto min-h-[calc(100vh-73px)] w-full max-w-6xl px-5 py-10 sm:px-8">
-      <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-800">
-        Course explorer
-      </p>
+    <main className="page-shell py-10 sm:py-14">
+      <span className="eyebrow">Course explorer</span>
       <div className="mt-3 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-emerald-950 sm:text-5xl">
+          <h1 className="page-title !text-[clamp(2.5rem,7vw,4.5rem)]">
             Find your next course.
           </h1>
-          <p className="mt-3 max-w-2xl text-slate-600">
+          <p className="page-lead mt-3">
             Search the imported catalog by code or title, then inspect real
             sections and meetings.
           </p>
@@ -53,19 +51,19 @@ export default async function CoursesPage({
       </div>
 
       <form
-        className="mt-8 grid gap-3 rounded-3xl border border-emerald-950/15 bg-white/65 p-4 shadow-sm md:grid-cols-[1fr_12rem_12rem_auto]"
+        className="panel mt-8 grid gap-3 p-4 md:grid-cols-[1fr_12rem_12rem_auto]"
         method="get"
       >
         <input
           aria-label="Search courses"
-          className="rounded-xl border border-emerald-950/20 bg-white px-4 py-3 outline-none focus:border-emerald-700"
+          className="field"
           defaultValue={filters.q}
           name="q"
           placeholder="Course code or title"
         />
         <select
           aria-label="Subject"
-          className="rounded-xl border border-emerald-950/20 bg-white px-4 py-3"
+          className="field"
           defaultValue={filters.subject ?? ''}
           name="subject"
         >
@@ -76,7 +74,7 @@ export default async function CoursesPage({
         </select>
         <select
           aria-label="Term"
-          className="rounded-xl border border-emerald-950/20 bg-white px-4 py-3"
+          className="field"
           defaultValue={filters.term ?? ''}
           name="term"
         >
@@ -87,10 +85,7 @@ export default async function CoursesPage({
             </option>
           ))}
         </select>
-        <button
-          className="rounded-xl bg-emerald-900 px-5 py-3 font-bold text-white"
-          type="submit"
-        >
+        <button className="button-primary !rounded-xl" type="submit">
           Search
         </button>
       </form>
@@ -108,7 +103,7 @@ export default async function CoursesPage({
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {courses.map((course) => (
             <Link
-              className="group rounded-2xl border border-emerald-950/15 bg-white/70 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="panel group p-5 transition hover:-translate-y-0.5 hover:shadow-md"
               href={`/courses/${course.code}`}
               key={course.code}
             >
