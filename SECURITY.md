@@ -1,6 +1,7 @@
 # Security policy
 
-CUWeave is in public-beta development and has no supported production deployment yet.
+CUWeave is in public-beta development. Deployment configuration and runbooks exist, but production
+launch still requires maintainer approval, external service configuration, and policy review.
 
 Please report suspected vulnerabilities privately to the maintainers through the repository's
 private security-advisory feature. Do not open a public issue containing exploit details, secrets,

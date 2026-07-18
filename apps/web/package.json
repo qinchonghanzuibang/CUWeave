@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test:e2e": "playwright test",
+    "deploy:validate": "node scripts/validate-deployment.mjs",
+    "smoke": "node scripts/smoke-production.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -16,6 +18,7 @@
     "@cuweave/db": "workspace:*",
     "@cuweave/domain": "workspace:*",
     "@cuweave/planner": "workspace:*",
+    "@cuweave/requirements": "workspace:*",
     "better-auth": "^1.6.23",
     "next": "^16.0.10",
     "nodemailer": "^9.0.3",

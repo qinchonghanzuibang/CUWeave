@@ -1,5 +1,6 @@
 import { listSavedSchedules } from '@cuweave/db'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 import { getViewer } from '../../lib/session'
 import { ScheduleLibrary } from './schedule-library'
@@ -20,6 +21,13 @@ export default async function SchedulesPage() {
         issue revocable read-only links.
       </p>
       <ScheduleLibrary initial={await listSavedSchedules(viewer.id)} />
+      <aside className="mt-8 rounded-2xl border border-emerald-950/10 bg-emerald-50/55 p-5 text-sm text-emerald-950">
+        Courses in your saved schedules can be included in the{' '}
+        <Link className="font-black underline" href="/requirements">
+          requirement checker
+        </Link>
+        . Inclusion does not imply that a Division has approved the course.
+      </aside>
     </main>
   )
 }

@@ -5,8 +5,10 @@ import { getDatabaseConnection } from './client'
 export async function checkDatabaseReadiness(): Promise<boolean> {
   try {
     const { db } = getDatabaseConnection()
-    await db.execute(sql`select 1`)
-    return true
+    const result = await db.execute<{ value: string }>(sql`
+      select value from system_metadata where key = 'schema_version'
+    `)
+    return result.rows[0]?.value === '0006_privacy_hardening'
   } catch {
     return false
   }

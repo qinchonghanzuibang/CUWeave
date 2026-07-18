@@ -1,12 +1,14 @@
 import { redirect } from 'next/navigation'
 
 import { getViewer } from '../../lib/session'
+import { isAuthenticationAvailable } from '../../lib/auth-policy'
 import { SignInForm } from './sign-in-form'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SignInPage() {
   if (await getViewer()) redirect('/profile')
+  const available = isAuthenticationAvailable()
   return (
     <main className="page-shell py-12 sm:py-16">
       <div className="mx-auto mb-8 max-w-2xl text-center">
@@ -17,7 +19,14 @@ export default async function SignInPage() {
           tools. Email ownership is not proof of current CUHK enrollment.
         </p>
       </div>
-      <SignInForm />
+      {available ? (
+        <SignInForm />
+      ) : (
+        <div className="mx-auto max-w-xl rounded-2xl border border-amber-900/15 bg-amber-50 p-6 text-center text-amber-950">
+          Sign-in is disabled for this Preview deployment. Use the protected
+          staging environment or ask a maintainer for an isolated Preview.
+        </div>
+      )}
     </main>
   )
 }

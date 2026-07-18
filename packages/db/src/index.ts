@@ -10,3 +10,5 @@ export {
   type CourseSection,
 } from './courses'
 export * from './product'
+export * from './requirements'
+export * from './rate-limit'

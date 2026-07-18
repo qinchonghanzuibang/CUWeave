@@ -4,6 +4,10 @@ import { NextResponse } from 'next/server'
 import { apiError } from '../../../../../lib/api-response'
 import { parseReviewInput } from '../../../../../lib/review-input'
 import { requireViewer } from '../../../../../lib/session'
+import {
+  enforceRateLimit,
+  rateLimitPolicies,
+} from '../../../../../lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +17,12 @@ export async function PATCH(
 ) {
   try {
     const viewer = await requireViewer(request.headers)
+    const limited = await enforceRateLimit(
+      request,
+      rateLimitPolicies.reviewWrite,
+      viewer.id
+    )
+    if (limited) return limited
     const { reviewId } = await params
     const body = (await request.json()) as Record<string, unknown>
     await updateReview(viewer.id, reviewId, parseReviewInput(body))

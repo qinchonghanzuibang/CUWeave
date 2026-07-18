@@ -79,6 +79,22 @@ export default async function ProfilePage() {
             Open schedule library
           </Link>
         </section>
+
+        <section className="panel p-6 lg:col-span-2">
+          <p className="text-xs font-black uppercase tracking-widest text-emerald-700">
+            Programme planning
+          </p>
+          <h2 className="mt-2 text-2xl font-black">
+            Check requirements with sources attached.
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+            Combine favorites, saved schedules, and manual completed courses.
+            Draft or approval-dependent rules remain visibly uncertain.
+          </p>
+          <Link className="button-primary mt-5" href="/requirements">
+            Open requirement checker
+          </Link>
+        </section>
       </div>
 
       <section className="mt-8 rounded-2xl border border-red-900/10 bg-red-50/55 p-5">

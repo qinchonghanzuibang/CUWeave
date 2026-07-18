@@ -4,6 +4,11 @@ Public Beta uses email magic links. CUWeave does not collect a CUHK password, On
 student ID, transcript, or legal name. Development sign-in previews a single-use link locally;
 production sends the link through configured SMTP.
 
+Production accepts only an exact authentication origin and configured trusted origins. Preview
+authentication is disabled unless the deployment has an isolated database and explicit opt-in.
+PostgreSQL-backed abuse limits store keyed request-identifier hashes, not raw IP addresses.
+Better Auth raw IP tracking is disabled, and the database rejects non-null session IP values.
+
 Anonymous planner data remains in versioned browser storage. After sign-in, a user may copy it to
 one or more private cloud schedules, then rename, update, duplicate, or delete them. Updates use an
 integer version so a stale tab receives a conflict instead of silently overwriting newer work.
@@ -14,5 +19,6 @@ update time, but no account identity. Revocation invalidates the link immediatel
 new link replaces the previous token.
 
 Account deactivation revokes sessions and authentication accounts and replaces the active email
-and display name. Community records remain for moderation and aggregate integrity. A future
-production privacy policy must define retention and support procedures before deployment.
+and display name. Community records remain for moderation and aggregate integrity. Publishable
+policy drafts and the operations runbook describe current behavior and identify the maintainer and
+legal decisions still required before launch.

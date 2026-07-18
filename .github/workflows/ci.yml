@@ -31,6 +31,7 @@ jobs:
       - run: pnpm lint:ts
       - run: pnpm typecheck
       - run: pnpm test:ts
+      - run: pnpm deploy:validate
       - run: pnpm build
 
   python:
@@ -143,5 +144,6 @@ jobs:
           --manifest tests/fixtures/synthetic-manifest.json
         working-directory: services/ingest
       - run: pnpm dev:seed
+      - run: pnpm requirements:seed
       - run: pnpm --filter @cuweave/web exec playwright install --with-deps chromium
       - run: pnpm test:e2e

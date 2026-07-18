@@ -4,7 +4,9 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
 import { magicLink } from 'better-auth/plugins'
-import nodemailer from 'nodemailer'
+
+import { authBaseUrl, authTrustedOrigins } from './auth-policy'
+import { sendProductionMagicLink } from './magic-link-email'
 
 interface DevelopmentLink {
   url: string
@@ -35,29 +37,13 @@ function authSecret(): string {
   throw new Error('BETTER_AUTH_SECRET must contain at least 32 characters.')
 }
 
-function baseUrl(): string {
-  return process.env.BETTER_AUTH_URL ?? 'http://127.0.0.1:3000'
-}
-
 async function sendMagicLink(email: string, url: string): Promise<void> {
   if (isDevelopmentAuthEnabled()) {
     developmentLinks.set(email.toLowerCase(), { url, createdAt: Date.now() })
     return
   }
 
-  const smtpUrl = process.env.AUTH_SMTP_URL
-  const from = process.env.AUTH_EMAIL_FROM
-  if (!smtpUrl || !from)
-    throw new Error(
-      'AUTH_SMTP_URL and AUTH_EMAIL_FROM are required outside development mode.'
-    )
-  const transporter = nodemailer.createTransport(smtpUrl)
-  await transporter.sendMail({
-    from,
-    to: email,
-    subject: 'Sign in to CUWeave',
-    text: `Use this single-use link to sign in to CUWeave:\n\n${url}\n\nIf you did not request it, ignore this message.`,
-  })
+  await sendProductionMagicLink(email, url)
 }
 
 export function takeDevelopmentMagicLink(email: string): string | null {
@@ -71,16 +57,18 @@ export function takeDevelopmentMagicLink(email: string): string | null {
 
 export const auth = betterAuth({
   appName: 'CUWeave',
-  baseURL: baseUrl(),
+  baseURL: authBaseUrl(),
   secret: authSecret(),
   database: drizzleAdapter(getDatabaseConnection().db, {
     provider: 'pg',
     schema,
   }),
-  trustedOrigins: [baseUrl()],
+  trustedOrigins: authTrustedOrigins(),
+  trustedProxyHeaders: process.env.TRUST_PROXY_HEADERS === 'true',
   advanced: {
     cookiePrefix: 'cuweave',
     useSecureCookies: process.env.NODE_ENV === 'production',
+    ipAddress: { disableIpTracking: true },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 14,

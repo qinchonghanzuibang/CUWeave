@@ -150,8 +150,13 @@ export default async function CourseDetailPage({
         signedIn={Boolean(viewer)}
       />
       <aside className="mt-8 rounded-2xl border border-amber-900/15 bg-amber-50/70 p-5 text-sm leading-6 text-amber-950">
-        CUWeave is an unofficial planning aid. Always verify final enrollment
-        details in CUSIS.
+        A course cannot be assumed to satisfy a contextual programme rule from
+        its code alone. Add it to the{' '}
+        <Link className="font-bold underline" href="/requirements">
+          requirement checker
+        </Link>{' '}
+        to see the applicable source-backed result and any uncertainty. Always
+        verify final enrollment details in CUSIS.
       </aside>
     </main>
   )

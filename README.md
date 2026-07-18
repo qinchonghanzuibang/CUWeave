@@ -1,121 +1,133 @@
 # CUWeave
 
-CUWeave is an unofficial, student-led, open-source course explorer and academic planning platform
-for students at The Chinese University of Hong Kong.
+**Plan courses. Share experiences. Navigate your degree.**
 
-> CUWeave is not affiliated with or endorsed by CUHK. It is an advisory planning tool, not a
-> replacement for CUSIS. Always verify final enrollment details in CUSIS.
+**选课、评价与培养规划，一处完成。**
 
-## Current status
+CUWeave is an open-source academic planning platform for students at The Chinese University of
+Hong Kong. It brings course discovery, timetable planning, community experience, saved schedules,
+and source-backed programme requirements into one coherent Web experience.
 
-The Public Beta Web experience integrates searchable courses, detailed offerings and meetings, a
-hybrid local/cloud planner, favorites, structured reviews, private sharing, and basic moderation.
-Programme requirements, production deployment, and live upstream fetching remain deferred.
+[![CI](https://github.com/qinchonghanzuibang/CUWeave/actions/workflows/ci.yml/badge.svg)](https://github.com/qinchonghanzuibang/CUWeave/actions/workflows/ci.yml)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-2563eb.svg)](LICENSE)
+![Status: Public Beta](https://img.shields.io/badge/status-Public%20Beta-7c3aed.svg)
 
-The repository does not contain real course JSON. Tests and CI use independently synthetic data;
-developers may validate local read-only files from an audited upstream checkout.
+> **CUWeave is an unofficial, student-led project. It is not affiliated with or endorsed by CUHK.
+> Always verify final course and enrollment information in CUSIS.**
+
+## What is CUWeave?
+
+CUWeave connects the decisions students usually make across separate tools. Discover a course,
+inspect its offerings and meetings, add a section to a timetable, save the schedule, follow the
+course, read experience tied to a specific instructor or offering, and evaluate programme progress
+without losing context between pages.
+
+The result is a unified course experience: academic records, personal planning, and community
+knowledge remain connected while their different sources and confidence levels stay visible.
+
+## Features
+
+- **Course discovery** — Search and filter courses, offerings, sections, meetings, and instructors.
+- **Timetable planner** — Build local schedules with deterministic conflict detection and explicit
+  uncertainty for incomplete teaching dates.
+- **Accounts and cloud schedules** — Save, rename, duplicate, import, share, and revoke schedules
+  with account isolation and optimistic concurrency.
+- **Favorites** — Keep a private course shortlist connected to course and planning views.
+- **Contextual reviews** — Share experience for a specific course offering and, optionally, a
+  specific instructor across structured rating dimensions.
+- **Community safety** — Vote on reviews, report concerns, preserve revisions, and support audited
+  moderation decisions.
+- **Programme requirement checking** — Combine schedule, favorite, and manually entered courses in
+  an explainable, source-linked evaluation that distinguishes satisfied, missing, and uncertain
+  requirements.
+- **Unified course details** — See academic history, current offerings, planning actions,
+  requirement context, and community experience in one place.
+
+## Designed for trust
+
+- Imported academic records retain source URI, upstream revision, retrieval time, adapter version,
+  snapshot hash, and import history.
+- Changed source records create historical versions instead of silently overwriting the past.
+- Missing, ambiguous, or approval-dependent information stays uncertain; CUWeave does not invent
+  academic rules or meeting details.
+- Anonymous reviews hide account identity publicly, while the authenticated author relationship is
+  retained internally for editing, abuse handling, and moderation.
+- Rate limiting uses keyed identifiers; raw IP addresses are neither stored nor logged.
+- CUWeave never asks for CUHK passwords, OnePass credentials, student IDs (SID), or transcripts.
+- CUSIS and official CUHK materials remain authoritative for enrollment and degree decisions.
+
+## Current coverage
+
+The local import pipeline has been validated against pinned **2026–27 IERG and ENGG** data from the
+audited Another Planner revision. Real academic JSON remains outside this repository and is never
+fetched automatically.
+
+The two Information Engineering 2026 requirement sets—for the MPhil and PhD routes—remain
+**drafts**. Official material supports their minimum graduate-course counts, but complete detailed
+2026–27 study schemes are still required before the sets can be verified. CUWeave does not yet
+claim whole-university course or programme coverage.
 
 ## Technology
 
-- pnpm workspace, strict TypeScript, Next.js App Router, React, and Tailwind CSS
-- PostgreSQL 16 and Drizzle-owned schema/migrations
-- Python 3.12+, uv, Pydantic, Psycopg, pytest, and Ruff
-- Vitest, focused Playwright flows, and GitHub Actions
+- Next.js, React, TypeScript, and Tailwind CSS
+- PostgreSQL and Drizzle ORM
+- Better Auth with database-backed sessions and provider-neutral SMTP
+- Python, Pydantic, and Psycopg
+- Vitest, pytest, Playwright, Ruff, and GitHub Actions
 
-## Local setup
+## Local development
 
-Requirements: Node.js 22+, pnpm 11+, Docker Compose, and uv.
+Requirements: Node.js 22+, pnpm 11+, Python 3.12+, uv, and Docker Compose.
 
 ```bash
 cp .env.example .env
 pnpm install --frozen-lockfile
-cd services/ingest && uv sync --frozen && cd ../..
+(cd services/ingest && uv sync --frozen)
+
 pnpm db:up
 pnpm db:migrate
 pnpm ingest import tests/fixtures/synthetic-subject.json \
   --manifest tests/fixtures/synthetic-manifest.json
 pnpm dev:seed
+pnpm requirements:seed
 pnpm dev
 ```
 
-Open <http://localhost:3000>, browse `/courses`, or open `/planner`. With
-`AUTH_DEV_MODE=true`, request a link at `/sign-in` and continue through the local-only link shown in
-the page. The synthetic accounts are `student@cuweave.local` and `moderator@cuweave.local`.
+Open <http://localhost:3000>. Development magic links are displayed locally when
+`AUTH_DEV_MODE=true`.
 
-Production authentication requires a unique `BETTER_AUTH_SECRET`, the canonical
-`BETTER_AUTH_URL`, and `AUTH_SMTP_URL` / `AUTH_EMAIL_FROM`. Development link preview is forcibly
-disabled in production. Database and authentication credentials are server-only and must never use
-the `NEXT_PUBLIC_` prefix.
-
-## Import local pinned course data
-
-The CLI accepts local files only and never fetches a source URI. Create a manifest using the shape
-documented in [the import guide](docs/upstream/importing.md), then run:
-
-```bash
-pnpm ingest validate "$INPUT" --manifest "$MANIFEST"
-DATABASE_URL="$DATABASE_URL" pnpm ingest import "$INPUT" --manifest "$MANIFEST"
-```
-
-For the audited Another Planner checkout, import both approved 2026-27 subjects with one command:
+To import the reviewed IERG and ENGG files directly from the pinned, read-only upstream checkout:
 
 ```bash
 CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
-  DATABASE_URL="$DATABASE_URL" pnpm data:import:local
+  pnpm data:import:local
 ```
 
-The helper verifies revision `6c9ea314ff5595dd90a88bbbdae8d286408d85f3`, builds provenance
-metadata, validates, and imports `IERG.json` and `ENGG.json` directly from the checkout. It fails on
-another revision and never copies those files into CUWeave.
+The command verifies the audited revision and does not copy source files into CUWeave. See the
+[local import guide](docs/upstream/importing.md) for provenance and manifest requirements.
 
-## Public Beta behavior
+## Contributing
 
-- Anonymous schedules stay in versioned browser storage. Signed-in users can save, rename, update,
-  duplicate, delete, or import local schedules. Cloud writes use optimistic versions.
-- Read-only schedule links use high-entropy tokens; only hashes are stored, owner identity is not
-  exposed, and links can be revoked.
-- Favorites are private to the account and link back to the course hub and planner.
-- Reviews are scoped to an exact offering and optional instructor, support six rating dimensions,
-  preserve edit history, and can be anonymous. Public anonymous responses redact account identity.
-- One vote per user/review, structured reports, role-gated moderation, and resolution audit fields
-  provide the initial community-safety boundary.
+Contributions that improve accuracy, accessibility, privacy, or student usefulness are welcome.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change, and report vulnerabilities
+privately according to [SECURITY.md](SECURITY.md).
 
-See [accounts and privacy](docs/product/accounts-and-privacy.md),
-[reviews and moderation](docs/product/reviews-and-moderation.md), and the
-[authentication ADR](docs/decisions/0004-better-auth-database-sessions.md).
+## Policies
 
-## Core commands
+The current publishable policy drafts are available in the Web application and their source files:
 
-| Command                       | Purpose                                                 |
-| ----------------------------- | ------------------------------------------------------- |
-| `pnpm dev`                    | Start the Web development server                        |
-| `pnpm build`                  | Build Web without requiring a reachable database        |
-| `pnpm ingest ...`             | Validate or import one local subject/year snapshot      |
-| `pnpm data:import:local`      | Import pinned local IERG and ENGG source files          |
-| `pnpm dev:seed`               | Reset deterministic synthetic accounts and product data |
-| `pnpm role:grant EMAIL ROLE`  | Grant a local account `user`, `moderator`, or `admin`   |
-| `pnpm lint`                   | Run TypeScript and Python lint checks                   |
-| `pnpm format:check`           | Verify TypeScript, documentation, and Python formatting |
-| `pnpm typecheck`              | Type-check all TypeScript workspaces                    |
-| `pnpm test`                   | Run TypeScript and Python tests                         |
-| `pnpm test:integration`       | Run PostgreSQL ingestion lifecycle tests                |
-| `pnpm test:e2e`               | Run the focused course-to-planner browser flow          |
-| `pnpm check`                  | Run repository quality checks and production build      |
-| `pnpm db:up` / `pnpm db:down` | Start or stop local PostgreSQL                          |
-| `pnpm db:migrate`             | Apply committed migrations                              |
-| `pnpm db:generate`            | Generate a migration from the Drizzle schema            |
+- [Privacy Policy (`/privacy`)](apps/web/app/privacy/page.tsx)
+- [Terms of Use (`/terms`)](apps/web/app/terms/page.tsx)
+- [Community Guidelines (`/community-guidelines`)](apps/web/app/community-guidelines/page.tsx)
+- [Review and Moderation Policy (`/moderation-policy`)](apps/web/app/moderation-policy/page.tsx)
 
-## Repository structure
+These drafts require the maintainer and legal review identified in the documents before a public
+production launch.
 
-```text
-apps/web/          Next.js public-beta UI, authentication, and HTTP boundary
-packages/config/   Shared lint configuration
-packages/db/       Drizzle schema, authorized product services, and migrations
-packages/domain/   Framework-independent health contracts
-packages/planner/  Framework-independent conflict and schedule semantics
-services/ingest/   Local-file validation and transactional academic imports
-docs/              Architecture, product principles, and provenance documentation
-```
+## License and acknowledgements
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change. CUWeave is licensed under
-[AGPL-3.0-only](LICENSE).
+CUWeave source code is licensed under the [GNU Affero General Public License v3.0 only](LICENSE).
+Academic data, university materials, names, and third-party projects remain subject to their own
+rights and licenses. Review of an upstream project does not mean its code, fixtures, assets, or
+academic data were incorporated into CUWeave. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+for the audited references and notices.
