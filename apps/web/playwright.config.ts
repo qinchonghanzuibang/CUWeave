@@ -11,7 +11,10 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'narrow', use: { ...devices['iPhone 13'] } },
+    {
+      name: 'narrow',
+      use: { ...devices['iPhone 13'], browserName: 'chromium' },
+    },
   ],
   webServer: {
     command: 'pnpm dev --hostname 127.0.0.1 --port 3100',
