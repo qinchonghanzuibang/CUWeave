@@ -6,6 +6,7 @@
 local pinned JSON -> services/ingest -> PostgreSQL <- packages/db <- apps/web
                                                         ^
 browser localStorage -> packages/planner ----------------|
+versioned rules -> packages/requirements ----------------|
 email magic link -> Better Auth -> PostgreSQL sessions ---|
 ```
 
@@ -26,6 +27,10 @@ tokens, database sessions, HTTP-only cookies, and server-side authorization. Pro
 own account status, roles, saved schedules, favorites, reviews, votes, reports, and moderation.
 Route Handlers provide stable HTTP boundaries; page components do not contain authorization rules.
 
+`packages/requirements` is also framework-independent. PostgreSQL stores programme, source,
+version, rule, and audit records; the package evaluates normalized course selections with no I/O.
+Only verified sets are reliable, and unsupported or approval-dependent wording remains uncertain.
+
 ## Academic history
 
 `course` is stable identity. Catalog, offering, and section rows are versioned with nullable closing
@@ -37,7 +42,7 @@ duplicate academic rows.
 ## Product boundaries
 
 The Public Beta Web slice provides course search, unified detail pages, hybrid local/cloud
-planning, favorites, structured reviews, share links, and a small moderation queue. Public review
-queries redact anonymous authors, and share links expose schedule content without owner identity.
-CUSIS remains authoritative. Programme requirements, live scraping, mobile clients, analytics,
-and production deployment remain deferred.
+planning, favorites, structured reviews, share links, a small moderation queue, and source-backed
+requirement checking. Public review queries redact anonymous authors, and share links expose
+schedule content without owner identity. CUSIS remains authoritative. Live scraping, mobile
+clients, analytics, and automatic deployment remain deferred.
