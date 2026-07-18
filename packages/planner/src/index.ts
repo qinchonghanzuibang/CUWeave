@@ -9,14 +9,23 @@ export interface PlannerMeeting {
   endMinutes: number | null
   teachingDates: TeachingDates
   rawTime: string
+  locationRaw: string
 }
 
 export interface PlannerSection {
   id: string
   courseCode: string
   label: string
+  academicYear: string
   termKey: string
+  termName: string
   meetings: PlannerMeeting[]
+}
+
+export interface AcademicTermGroup {
+  id: string
+  label: string
+  sections: PlannerSection[]
 }
 
 export interface ConflictResult {
@@ -37,6 +46,110 @@ export interface StoredScheduleV1 {
 }
 
 export const STORAGE_KEY = 'cuweave.planner.v1'
+export const ACTIVE_TERM_STORAGE_KEY = 'cuweave.planner.active-term.v1'
+
+export function wallClockMinutes(value: string | null): number | null {
+  if (!value) return null
+  const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(value)
+  if (!match) return null
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  if (hours > 23 || minutes > 59) return null
+  return hours * 60 + minutes
+}
+
+export function academicTermIdentity(
+  section: Pick<PlannerSection, 'academicYear' | 'termKey'>
+): string {
+  return `${section.academicYear}:${section.termKey}`
+}
+
+export function academicTermLabel(
+  section: Pick<PlannerSection, 'academicYear' | 'termName'>
+): string {
+  const term = section.termName
+    .replace(new RegExp(`^${section.academicYear}\\s*`, 'i'), '')
+    .trim()
+  return `${section.academicYear} ${term || section.termName}`
+}
+
+export function weeklyMeetingDisplayIdentity(meeting: PlannerMeeting): string {
+  const time =
+    meeting.weekday !== null &&
+    meeting.startMinutes !== null &&
+    meeting.endMinutes !== null
+      ? `${meeting.weekday}:${meeting.startMinutes}:${meeting.endMinutes}`
+      : `raw:${meeting.rawTime.trim().toLocaleLowerCase('en')}`
+  return `${time}:${meeting.locationRaw.trim().toLocaleLowerCase('en')}`
+}
+
+export function deduplicatePlannerSections(
+  sections: PlannerSection[]
+): PlannerSection[] {
+  const sectionMap = new Map<string, PlannerSection>()
+  const meetingKeys = new Map<string, Set<string>>()
+  for (const section of sections) {
+    let normalized = sectionMap.get(section.id)
+    if (!normalized) {
+      normalized = { ...section, meetings: [] }
+      sectionMap.set(section.id, normalized)
+      meetingKeys.set(section.id, new Set())
+    }
+    const seen = meetingKeys.get(section.id)!
+    for (const meeting of section.meetings) {
+      const key = weeklyMeetingDisplayIdentity(meeting)
+      if (seen.has(key)) continue
+      seen.add(key)
+      normalized.meetings.push(meeting)
+    }
+  }
+  return [...sectionMap.values()].sort((first, second) =>
+    `${first.courseCode}:${first.label}:${first.id}`.localeCompare(
+      `${second.courseCode}:${second.label}:${second.id}`
+    )
+  )
+}
+
+const termOrder = new Map([
+  ['term-1', 1],
+  ['term-2', 2],
+  ['summer-session', 3],
+  ['academic-year', 4],
+])
+
+export function groupSectionsByAcademicTerm(
+  sections: PlannerSection[]
+): AcademicTermGroup[] {
+  const groups = new Map<string, AcademicTermGroup>()
+  for (const section of deduplicatePlannerSections(sections)) {
+    const id = academicTermIdentity(section)
+    const group = groups.get(id) ?? {
+      id,
+      label: academicTermLabel(section),
+      sections: [],
+    }
+    group.sections.push(section)
+    groups.set(id, group)
+  }
+  return [...groups.values()].sort((first, second) => {
+    const [firstYear = '', firstTerm = ''] = first.id.split(':')
+    const [secondYear = '', secondTerm = ''] = second.id.split(':')
+    return (
+      secondYear.localeCompare(firstYear) ||
+      (termOrder.get(firstTerm) ?? 99) - (termOrder.get(secondTerm) ?? 99) ||
+      first.id.localeCompare(second.id)
+    )
+  })
+}
+
+export function resolveActiveAcademicTerm(
+  preferred: string | null,
+  groups: AcademicTermGroup[]
+): string | null {
+  if (preferred && groups.some((group) => group.id === preferred))
+    return preferred
+  return groups[0]?.id ?? null
+}
 
 export function intervalsOverlap(
   firstStart: number,
@@ -56,16 +169,26 @@ function dateRangesOverlap(
 }
 
 export function findConflicts(sections: PlannerSection[]): ConflictResult[] {
+  const normalizedSections = deduplicatePlannerSections(sections)
   const conflicts: ConflictResult[] = []
-  for (let firstIndex = 0; firstIndex < sections.length; firstIndex += 1) {
+  for (
+    let firstIndex = 0;
+    firstIndex < normalizedSections.length;
+    firstIndex += 1
+  ) {
     for (
       let secondIndex = firstIndex + 1;
-      secondIndex < sections.length;
+      secondIndex < normalizedSections.length;
       secondIndex += 1
     ) {
-      const first = sections[firstIndex]
-      const second = sections[secondIndex]
-      if (!first || !second || first.termKey !== second.termKey) continue
+      const first = normalizedSections[firstIndex]
+      const second = normalizedSections[secondIndex]
+      if (
+        !first ||
+        !second ||
+        academicTermIdentity(first) !== academicTermIdentity(second)
+      )
+        continue
       for (const firstMeeting of first.meetings) {
         for (const secondMeeting of second.meetings) {
           if (
@@ -125,7 +248,7 @@ export function sectionCompatibility(
     return { status: 'incompatible', ruleId: 'duplicate-section' }
   if (
     first.courseCode !== second.courseCode ||
-    first.termKey !== second.termKey
+    academicTermIdentity(first) !== academicTermIdentity(second)
   ) {
     return { status: 'compatible', ruleId: 'different-course-or-term' }
   }
