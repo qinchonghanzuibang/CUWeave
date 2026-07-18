@@ -13,12 +13,14 @@
     "db:migrate": "tsx src/migrate.ts",
     "db:validate": "tsx src/validate-migration.ts",
     "dev:seed": "tsx src/seed-development.ts",
+    "requirements:seed": "tsx src/seed-requirements.ts",
     "role:grant": "tsx src/grant-role.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
+    "@cuweave/requirements": "workspace:*",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "pg": "^8.16.3"

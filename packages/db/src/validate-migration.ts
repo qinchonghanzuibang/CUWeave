@@ -21,6 +21,16 @@ const expectedTables = [
   'meeting',
   'instructor',
   'section_instructor',
+  'programme',
+  'requirement_set',
+  'requirement_source',
+  'requirement_rule_group',
+  'requirement_rule',
+  'requirement_rule_source',
+  'requirement_verification_event',
+  'user_planning_profile',
+  'user_requirement_course',
+  'rate_limit_event',
 ] as const
 
 const { db, pool } = getDatabaseConnection()
@@ -44,6 +54,12 @@ try {
       `Required migrations are not present: ${missingTables.join(', ')}`
     )
   }
+
+  const version = await db.execute<{ value: string }>(sql`
+    select value from system_metadata where key = 'schema_version'
+  `)
+  if (version.rows[0]?.value !== '0004_requirements_launch')
+    throw new Error('Expected schema migration version is not active.')
 
   console.log('Database migration and readiness validation succeeded.')
 } finally {

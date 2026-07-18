@@ -1,8 +1,10 @@
 import { sql } from 'drizzle-orm'
 import {
   boolean,
+  bigserial,
   check,
   char,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -619,5 +621,299 @@ export const reviewRevision = pgTable(
   },
   (table) => [
     index('review_revision_review_idx').on(table.reviewId, table.createdAt),
+  ]
+)
+
+export const programme = pgTable(
+  'programme',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    code: text('code').notNull().unique(),
+    name: text('name').notNull(),
+    stream: text('stream').notNull(),
+    description: text('description').notNull().default(''),
+    active: boolean('active').notNull().default(true),
+    ...auditColumns,
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check('programme_code_check', sql`${table.code} ~ '^[A-Z0-9-]{2,40}$'`),
+  ]
+)
+
+export const requirementSet = pgTable(
+  'requirement_set',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    programmeId: uuid('programme_id')
+      .notNull()
+      .references(() => programme.id, { onDelete: 'restrict' }),
+    entryYear: integer('entry_year').notNull(),
+    effectiveAcademicPeriod: text('effective_academic_period').notNull(),
+    sourceRevision: text('source_revision').notNull(),
+    version: integer('version').notNull(),
+    status: text('status').notNull().default('draft'),
+    notes: text('notes').notNull().default(''),
+    createdBy: text('created_by').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    verifiedBy: text('verified_by').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    supersedesId: uuid('supersedes_id'),
+    ...auditColumns,
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('requirement_set_version_unique').on(
+      table.programmeId,
+      table.entryYear,
+      table.effectiveAcademicPeriod,
+      table.sourceRevision,
+      table.version
+    ),
+    index('requirement_set_lookup_idx').on(
+      table.programmeId,
+      table.entryYear,
+      table.status
+    ),
+    check(
+      'requirement_set_status_check',
+      sql`${table.status} in ('draft', 'verified', 'superseded', 'archived')`
+    ),
+    check(
+      'requirement_set_entry_year_check',
+      sql`${table.entryYear} between 2000 and 2200`
+    ),
+    check('requirement_set_version_check', sql`${table.version} > 0`),
+    foreignKey({
+      columns: [table.supersedesId],
+      foreignColumns: [table.id],
+      name: 'requirement_set_supersedes_fk',
+    }).onDelete('restrict'),
+  ]
+)
+
+export const requirementSource = pgTable(
+  'requirement_source',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    requirementSetId: uuid('requirement_set_id')
+      .notNull()
+      .references(() => requirementSet.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    url: text('url').notNull(),
+    sourceRevision: text('source_revision').notNull(),
+    effectiveAcademicYear: text('effective_academic_year').notNull(),
+    verificationStatus: text('verification_status').notNull(),
+    maintainerVerifiedAt: timestamp('maintainer_verified_at', {
+      withTimezone: true,
+    }),
+    explanatoryNote: text('explanatory_note').notNull().default(''),
+    ...auditColumns,
+  },
+  (table) => [
+    unique('requirement_source_url_unique').on(
+      table.requirementSetId,
+      table.url
+    ),
+    check('requirement_source_https_check', sql`${table.url} like 'https://%'`),
+    check(
+      'requirement_source_status_check',
+      sql`${table.verificationStatus} in ('official', 'maintainer_verified', 'needs_review')`
+    ),
+  ]
+)
+
+export const requirementRuleGroup = pgTable(
+  'requirement_rule_group',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    requirementSetId: uuid('requirement_set_id')
+      .notNull()
+      .references(() => requirementSet.id, { onDelete: 'cascade' }),
+    parentId: uuid('parent_id'),
+    label: text('label').notNull(),
+    operator: text('operator').notNull(),
+    position: integer('position').notNull().default(0),
+  },
+  (table) => [
+    index('requirement_group_set_idx').on(
+      table.requirementSetId,
+      table.position
+    ),
+    check(
+      'requirement_group_operator_check',
+      sql`${table.operator} in ('all', 'any')`
+    ),
+    check('requirement_group_position_check', sql`${table.position} >= 0`),
+    foreignKey({
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+      name: 'requirement_group_parent_fk',
+    }).onDelete('cascade'),
+  ]
+)
+
+export const requirementRule = pgTable(
+  'requirement_rule',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    requirementSetId: uuid('requirement_set_id')
+      .notNull()
+      .references(() => requirementSet.id, { onDelete: 'cascade' }),
+    groupId: uuid('group_id')
+      .notNull()
+      .references(() => requirementRuleGroup.id, { onDelete: 'cascade' }),
+    label: text('label').notNull(),
+    category: text('category').notNull(),
+    kind: text('kind').notNull(),
+    configuration: jsonb('configuration').notNull(),
+    verificationStatus: text('verification_status').notNull().default('draft'),
+    maintainerReviewedAt: timestamp('maintainer_reviewed_at', {
+      withTimezone: true,
+    }),
+    explanatoryNote: text('explanatory_note').notNull().default(''),
+    position: integer('position').notNull().default(0),
+  },
+  (table) => [
+    index('requirement_rule_group_idx').on(table.groupId, table.position),
+    check(
+      'requirement_rule_kind_check',
+      sql`${table.kind} in ('minimum_course_count', 'minimum_unit_count', 'required_courses', 'choose_n', 'course_allowlist', 'category', 'exclusion', 'no_double_counting', 'manual_review', 'unsupported')`
+    ),
+    check(
+      'requirement_rule_status_check',
+      sql`${table.verificationStatus} in ('draft', 'verified', 'needs_review')`
+    ),
+    check('requirement_rule_position_check', sql`${table.position} >= 0`),
+  ]
+)
+
+export const requirementRuleSource = pgTable(
+  'requirement_rule_source',
+  {
+    ruleId: uuid('rule_id')
+      .notNull()
+      .references(() => requirementRule.id, { onDelete: 'cascade' }),
+    sourceId: uuid('source_id')
+      .notNull()
+      .references(() => requirementSource.id, { onDelete: 'cascade' }),
+  },
+  (table) => [primaryKey({ columns: [table.ruleId, table.sourceId] })]
+)
+
+export const requirementVerificationEvent = pgTable(
+  'requirement_verification_event',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    requirementSetId: uuid('requirement_set_id')
+      .notNull()
+      .references(() => requirementSet.id, { onDelete: 'cascade' }),
+    actorId: text('actor_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    eventType: text('event_type').notNull(),
+    detail: jsonb('detail').notNull().default({}),
+    ...auditColumns,
+  },
+  (table) => [
+    index('requirement_event_set_idx').on(
+      table.requirementSetId,
+      table.createdAt
+    ),
+    check(
+      'requirement_event_type_check',
+      sql`${table.eventType} in ('created', 'source_added', 'rule_added', 'validated', 'verified', 'superseded', 'archived')`
+    ),
+  ]
+)
+
+export const userPlanningProfile = pgTable('user_planning_profile', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  programmeId: uuid('programme_id')
+    .notNull()
+    .references(() => programme.id, { onDelete: 'restrict' }),
+  requirementSetId: uuid('requirement_set_id')
+    .notNull()
+    .references(() => requirementSet.id, { onDelete: 'restrict' }),
+  entryYear: integer('entry_year').notNull(),
+  ...auditColumns,
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
+
+export const userRequirementCourse = pgTable(
+  'user_requirement_course',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    courseId: uuid('course_id').references(() => course.id, {
+      onDelete: 'set null',
+    }),
+    courseCode: text('course_code').notNull(),
+    titleRaw: text('title_raw').notNull().default(''),
+    units: numeric('units', { precision: 7, scale: 3 }).notNull(),
+    planningStatus: text('planning_status').notNull(),
+    origin: text('origin').notNull().default('manual'),
+    approvalStatus: text('approval_status').notNull().default('unknown'),
+    categories: jsonb('categories').notNull().default([]),
+    ...auditColumns,
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('user_requirement_course_unique').on(table.userId, table.courseCode),
+    index('user_requirement_course_user_idx').on(table.userId),
+    check(
+      'user_requirement_course_code_check',
+      sql`${table.courseCode} ~ '^[A-Z]{4}[0-9A-Z]{4,5}$'`
+    ),
+    check(
+      'user_requirement_course_status_check',
+      sql`${table.planningStatus} in ('completed', 'planned')`
+    ),
+    check(
+      'user_requirement_course_origin_check',
+      sql`${table.origin} in ('manual', 'favorite', 'schedule')`
+    ),
+    check(
+      'user_requirement_course_approval_check',
+      sql`${table.approvalStatus} in ('approved', 'unknown', 'rejected')`
+    ),
+    check('user_requirement_course_units_check', sql`${table.units} >= 0`),
+  ]
+)
+
+export const rateLimitEvent = pgTable(
+  'rate_limit_event',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    scope: text('scope').notNull(),
+    keyHash: char('key_hash', { length: 64 }).notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index('rate_limit_lookup_idx').on(
+      table.scope,
+      table.keyHash,
+      table.occurredAt
+    ),
+    index('rate_limit_expiry_idx').on(table.expiresAt),
+    check('rate_limit_hash_check', sql`${table.keyHash} ~ '^[0-9a-f]{64}$'`),
   ]
 )

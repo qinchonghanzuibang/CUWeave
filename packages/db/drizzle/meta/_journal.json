@@ -22,6 +22,20 @@
       "when": 1784306454724,
       "tag": "0002_optimal_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784344782432,
+      "tag": "0003_good_edwin_jarvis",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784345011544,
+      "tag": "0004_colossal_morg",
+      "breakpoints": true
     }
   ]
 }
