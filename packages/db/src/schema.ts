@@ -330,7 +330,13 @@ export const session = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
   },
-  (table) => [index('auth_session_user_idx').on(table.userId)]
+  (table) => [
+    index('auth_session_user_idx').on(table.userId),
+    check(
+      'auth_session_ip_disabled_check',
+      sql`coalesce(${table.ipAddress}, '') = ''`
+    ),
+  ]
 )
 
 export const account = pgTable(

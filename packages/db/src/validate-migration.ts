@@ -58,7 +58,7 @@ try {
   const version = await db.execute<{ value: string }>(sql`
     select value from system_metadata where key = 'schema_version'
   `)
-  if (version.rows[0]?.value !== '0004_requirements_launch')
+  if (version.rows[0]?.value !== '0006_privacy_hardening')
     throw new Error('Expected schema migration version is not active.')
 
   console.log('Database migration and readiness validation succeeded.')

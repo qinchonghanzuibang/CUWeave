@@ -17,10 +17,10 @@ export default function PrivacyPage() {
         </p>
         <p>
           Magic-link email is processed by the configured SMTP provider.
-          Sessions may record IP address and user-agent through the
-          authentication library. Abuse controls store only keyed hashes of
-          request identifiers, never raw IP addresses. Server logs must redact
-          secrets, email addresses, tokens, and raw network identifiers.
+          Sessions may record a user-agent but raw IP tracking is disabled.
+          Abuse controls store only keyed hashes of request identifiers, never
+          raw IP addresses. Server logs must redact secrets, email addresses,
+          tokens, and raw network identifiers.
         </p>
         <p>
           Reviews displayed as anonymous are anonymous to other students, not to

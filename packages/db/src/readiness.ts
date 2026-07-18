@@ -8,7 +8,7 @@ export async function checkDatabaseReadiness(): Promise<boolean> {
     const result = await db.execute<{ value: string }>(sql`
       select value from system_metadata where key = 'schema_version'
     `)
-    return result.rows[0]?.value === '0004_requirements_launch'
+    return result.rows[0]?.value === '0006_privacy_hardening'
   } catch {
     return false
   }

@@ -7,6 +7,7 @@ production sends the link through configured SMTP.
 Production accepts only an exact authentication origin and configured trusted origins. Preview
 authentication is disabled unless the deployment has an isolated database and explicit opt-in.
 PostgreSQL-backed abuse limits store keyed request-identifier hashes, not raw IP addresses.
+Better Auth raw IP tracking is disabled, and the database rejects non-null session IP values.
 
 Anonymous planner data remains in versioned browser storage. After sign-in, a user may copy it to
 one or more private cloud schedules, then rename, update, duplicate, or delete them. Updates use an

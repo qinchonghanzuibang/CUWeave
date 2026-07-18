@@ -14,6 +14,7 @@ async function seed() {
   const client = await pool.connect()
   try {
     await client.query('begin')
+    await client.query('delete from rate_limit_event')
     await client.query(
       `delete from review_report
        where reporter_id = any($1::text[]) or moderator_id = any($1::text[])`,

@@ -68,6 +68,7 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: 'cuweave',
     useSecureCookies: process.env.NODE_ENV === 'production',
+    ipAddress: { disableIpTracking: true },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 14,

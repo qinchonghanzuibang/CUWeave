@@ -36,6 +36,20 @@
       "when": 1784345011544,
       "tag": "0004_colossal_morg",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784346466508,
+      "tag": "0005_colossal_stephen_strange",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784346646019,
+      "tag": "0006_brainy_caretaker",
+      "breakpoints": true
     }
   ]
 }
