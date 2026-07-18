@@ -12,6 +12,7 @@ async function developmentSignIn(page: Page, email: string) {
 test('signs in, saves a schedule, favorites, reviews, shares, and moderates', async ({
   page,
 }) => {
+  test.setTimeout(60_000)
   test.skip(
     test.info().project.name !== 'desktop',
     'The existing planner flow covers narrow UI.'

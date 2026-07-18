@@ -160,6 +160,7 @@ export function ReviewHub({
   async function remove(id: string) {
     if (!confirm('Delete this review?')) return
     const response = await fetch(`/api/v1/reviews/${id}`, { method: 'DELETE' })
+    setMessage(response.ok ? 'Review deleted.' : 'Review could not be deleted.')
     if (response.ok) await refresh()
   }
 
