@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { apiError } from '../../../../lib/api-response'
 import { parseReviewInput } from '../../../../lib/review-input'
 import { getViewer, requireViewer } from '../../../../lib/session'
+import { enforceRateLimit, rateLimitPolicies } from '../../../../lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +39,12 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const viewer = await requireViewer(request.headers)
+    const limited = await enforceRateLimit(
+      request,
+      rateLimitPolicies.reviewWrite,
+      viewer.id
+    )
+    if (limited) return limited
     const body = (await request.json()) as Record<string, unknown>
     const review = await createReview(viewer.id, parseReviewInput(body))
     return NextResponse.json({ review }, { status: 201 })

@@ -4,11 +4,21 @@ import {
   takeDevelopmentMagicLink,
 } from '../../../../../lib/auth'
 import { NextResponse } from 'next/server'
+import {
+  enforceRateLimit,
+  rateLimitPolicies,
+} from '../../../../../lib/rate-limit'
+import { isAuthenticationAvailable } from '../../../../../lib/auth-policy'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
   try {
+    if (!isAuthenticationAvailable())
+      return NextResponse.json(
+        { error: 'Sign-in is disabled for this Preview deployment.' },
+        { status: 503, headers: { 'Cache-Control': 'no-store' } }
+      )
     const body = (await request.json()) as {
       email?: unknown
       callbackURL?: unknown
@@ -20,6 +30,8 @@ export async function POST(request: Request) {
         { error: 'Enter a valid email address.' },
         { status: 400 }
       )
+    const limited = await enforceRateLimit(request, rateLimitPolicies.magicLink)
+    if (limited) return limited
     const callbackURL =
       typeof body.callbackURL === 'string' && body.callbackURL.startsWith('/')
         ? body.callbackURL
