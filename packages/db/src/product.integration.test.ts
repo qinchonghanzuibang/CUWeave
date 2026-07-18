@@ -37,11 +37,12 @@ let sectionId = ''
 describe.skipIf(!enabled)('Public Beta PostgreSQL services', () => {
   beforeAll(async () => {
     const { pool } = getDatabaseConnection()
-    await pool.query(
-      `truncate review_revision,review_report,review_vote,review_rating,review,
-       course_favorite,saved_schedule_item,saved_schedule,auth_session,auth_account,
-       auth_verification,app_user cascade`
-    )
+    await pool.query(`delete from review where author_id = any($1::text[])`, [
+      [student, other, moderator],
+    ])
+    await pool.query(`delete from app_user where id = any($1::text[])`, [
+      [student, other, moderator],
+    ])
     await pool.query(
       `insert into app_user (id,name,email,email_verified,role,status)
        values ($1,'Student','student@test.invalid',true,'user','active'),
