@@ -21,6 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cuweave/domain": "workspace:*",
     "@cuweave/requirements": "workspace:*",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",

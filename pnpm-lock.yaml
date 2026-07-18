@@ -105,6 +105,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@cuweave/domain':
+        specifier: workspace:*
+        version: link:../domain
       '@cuweave/requirements':
         specifier: workspace:*
         version: link:../requirements
