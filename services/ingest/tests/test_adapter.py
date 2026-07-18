@@ -94,3 +94,28 @@ def test_explicit_medicine_academic_year_term_is_supported() -> None:
     term["term_name"] = "2099-00 Acad Year (Medicine)"
     snapshot = adapt(json.dumps(document).encode(), manifest)
     assert snapshot.courses[0].offerings[0].term_key == "academic-year"
+
+
+def test_exact_duplicate_meetings_are_removed_without_collapsing_source_facts() -> None:
+    raw, manifest = load()
+    document = json.loads(raw)
+    meetings = document["courses"][0]["terms"][0]["schedule"][0]["meetings"]
+    original = meetings[0]
+    meetings.extend(
+        [
+            dict(original),
+            {**original, "dates": "22/9, 29/9"},
+            {**original, "time": "Tu 9:30AM - 11:15AM"},
+            {**original, "time": "Mo 10:30AM - 12:15PM"},
+            {**original, "location": "Synthetic Room C"},
+            {**original, "instructor": "Professor SAMPLE Gamma"},
+        ]
+    )
+    normalized = adapt(json.dumps(document).encode(), manifest)
+    result = normalized.courses[0].offerings[0].sections[0].meetings
+    assert len(result) == 6
+    assert [meeting.ordinal for meeting in result] == list(range(6))
+    assert {meeting.teaching_dates_raw for meeting in result} >= {
+        "1/9, 8/9, 15/9",
+        "22/9, 29/9",
+    }

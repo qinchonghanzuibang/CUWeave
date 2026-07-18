@@ -22,7 +22,7 @@ from .models import (
 )
 
 ADAPTER_NAME = "another-planner-json"
-ADAPTER_VERSION = "2"
+ADAPTER_VERSION = "3"
 TIME_PATTERN = re.compile(
     r"^(Mo|Tu|We|Th|Fr|Sa|Su) (\d{1,2}:\d{2}(?:AM|PM)) - (\d{1,2}:\d{2}(?:AM|PM))$"
 )
@@ -152,6 +152,7 @@ def adapt(raw_bytes: bytes, manifest: Manifest) -> NormalizedSnapshot:
                 seen_sections.add(section_key)
                 availability = source_section.availability
                 meetings: list[NormalizedMeeting] = []
+                seen_meetings: set[tuple[object, ...]] = set()
                 for meeting_index, source_meeting in enumerate(source_section.meetings):
                     meeting_path = f"{section_path}.meetings[{meeting_index}]"
                     time_raw, weekday, start, end = parse_meeting_time(
@@ -160,6 +161,18 @@ def adapt(raw_bytes: bytes, manifest: Manifest) -> NormalizedSnapshot:
                     dates = normalize_display(source_meeting.dates or "TBA") or "TBA"
                     location = normalize_display(source_meeting.location or "TBA") or "TBA"
                     instructor = normalize_display(source_meeting.instructor or "TBA") or "TBA"
+                    meeting_identity = (
+                        time_raw,
+                        weekday,
+                        start,
+                        end,
+                        dates,
+                        location,
+                        instructor,
+                    )
+                    if meeting_identity in seen_meetings:
+                        continue
+                    seen_meetings.add(meeting_identity)
                     for field, value in (
                         ("time", time_raw),
                         ("dates", dates),
@@ -182,7 +195,7 @@ def adapt(raw_bytes: bytes, manifest: Manifest) -> NormalizedSnapshot:
                         )
                     meetings.append(
                         NormalizedMeeting(
-                            ordinal=meeting_index,
+                            ordinal=len(meetings),
                             time_raw=time_raw,
                             time_status="parsed" if weekday is not None else "unknown",
                             weekday=weekday,
