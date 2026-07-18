@@ -12,7 +12,7 @@ import { useMemo, useState } from 'react'
 
 function statusStyle(status: 'satisfied' | 'unsatisfied' | 'uncertain') {
   return status === 'satisfied'
-    ? 'bg-emerald-100 text-emerald-900'
+    ? 'bg-purple-100 text-purple-900'
     : status === 'unsatisfied'
       ? 'bg-red-100 text-red-900'
       : 'bg-amber-100 text-amber-950'
@@ -26,7 +26,7 @@ function ResultCard({
   depth?: number
 }) {
   return (
-    <div className={depth ? 'mt-3 border-l-2 border-emerald-950/10 pl-4' : ''}>
+    <div className={depth ? 'mt-3 border-l-2 border-purple-950/10 pl-4' : ''}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-black">{result.label}</h3>
@@ -172,7 +172,7 @@ export function RequirementChecker({
           </select>
           <div className="mt-4 flex flex-wrap gap-2">
             <span
-              className={`rounded-full px-3 py-1 text-xs font-black uppercase ${selected.status === 'verified' ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-950'}`}
+              className={`rounded-full px-3 py-1 text-xs font-black uppercase ${selected.status === 'verified' ? 'bg-purple-100 text-purple-900' : 'bg-amber-100 text-amber-950'}`}
             >
               {selected.status}
             </span>
@@ -279,7 +279,7 @@ export function RequirementChecker({
         <section className="panel p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-widest text-emerald-700">
+              <p className="text-xs font-black uppercase tracking-widest text-purple-700">
                 Current result
               </p>
               <h2 className="mt-2 text-3xl font-black">{evaluation.status}</h2>
@@ -295,7 +295,7 @@ export function RequirementChecker({
           </p>
         </section>
         <section className="panel p-6 sm:p-8">
-          <p className="text-xs font-black uppercase tracking-widest text-emerald-700">
+          <p className="text-xs font-black uppercase tracking-widest text-purple-700">
             Category progress
           </p>
           <div className="mt-5">
@@ -309,11 +309,11 @@ export function RequirementChecker({
           <div className="mt-4 space-y-4">
             {definition.sources.map((source) => (
               <article
-                className="rounded-xl border border-emerald-950/10 bg-white/65 p-4"
+                className="rounded-xl border border-purple-950/10 bg-white/65 p-4"
                 key={source.id}
               >
                 <a
-                  className="font-black text-emerald-800 underline"
+                  className="font-black text-purple-800 underline"
                   href={source.url}
                   rel="noreferrer"
                   target="_blank"

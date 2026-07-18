@@ -38,7 +38,7 @@ export function ModerationQueue({ initial }: { initial: ModerationReport[] }) {
     <div className="mt-8 space-y-4">
       {message ? (
         <p
-          className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-950"
+          className="rounded-xl bg-purple-50 p-3 text-sm text-purple-950"
           role="status"
         >
           {message}
@@ -48,7 +48,7 @@ export function ModerationQueue({ initial }: { initial: ModerationReport[] }) {
         <article className="panel p-5" key={report.id}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="font-black text-emerald-800">{report.courseCode}</p>
+              <p className="font-black text-purple-800">{report.courseCode}</p>
               <h2 className="mt-1 text-xl font-black capitalize">
                 {report.category} report
               </h2>

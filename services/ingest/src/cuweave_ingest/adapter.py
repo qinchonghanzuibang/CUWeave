@@ -22,7 +22,7 @@ from .models import (
 )
 
 ADAPTER_NAME = "another-planner-json"
-ADAPTER_VERSION = "1"
+ADAPTER_VERSION = "2"
 TIME_PATTERN = re.compile(
     r"^(Mo|Tu|We|Th|Fr|Sa|Su) (\d{1,2}:\d{2}(?:AM|PM)) - (\d{1,2}:\d{2}(?:AM|PM))$"
 )
@@ -70,6 +70,8 @@ def parse_term(term_code: str, term_name: str, academic_year: str, path: str) ->
         return "term-2"
     if "summer" in normalized:
         return "summer-session"
+    if "acad year" in normalized:
+        return "academic-year"
     raise ImportValidationError(f"{path}: unsupported term {term_code!r}/{term_name!r}")
 
 
@@ -85,7 +87,9 @@ def parse_meeting_time(
     start = datetime.strptime(match.group(2), "%I:%M%p").time()
     end = datetime.strptime(match.group(3), "%I:%M%p").time()
     if end <= start:
-        raise ImportValidationError(f"{path}: meeting end must be after start")
+        # The approved source uses midnight-to-midnight as a placeholder. Keep
+        # the raw display value, but never invent an overnight meeting.
+        return raw, None, None, None
     return raw, WEEKDAYS[match.group(1)], start, end
 
 
@@ -169,6 +173,13 @@ def adapt(raw_bytes: bytes, manifest: Manifest) -> NormalizedSnapshot:
                                     "path": f"{meeting_path}.{field}",
                                 }
                             )
+                    if time_raw.upper() != "TBA" and weekday is None:
+                        warnings.append(
+                            {
+                                "code": "MALFORMED_MEETING_TIME",
+                                "path": f"{meeting_path}.time",
+                            }
+                        )
                     meetings.append(
                         NormalizedMeeting(
                             ordinal=meeting_index,

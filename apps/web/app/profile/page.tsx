@@ -1,11 +1,13 @@
 import { listFavorites, listSavedSchedules } from '@cuweave/db'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 import { getViewer } from '../../lib/session'
 import { AccountActions } from './account-actions'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 export default async function ProfilePage() {
   const viewer = await getViewer()
@@ -35,7 +37,7 @@ export default async function ProfilePage() {
         <section className="panel p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-widest text-emerald-700">
+              <p className="text-xs font-black uppercase tracking-widest text-purple-700">
                 Favorites
               </p>
               <h2 className="mt-1 text-2xl font-black">Courses to revisit</h2>
@@ -48,11 +50,11 @@ export default async function ProfilePage() {
             {favorites.length ? (
               favorites.map((favorite) => (
                 <Link
-                  className="rounded-2xl border border-emerald-950/10 bg-white/70 p-4 hover:border-emerald-700/30"
+                  className="rounded-2xl border border-purple-950/10 bg-white/70 p-4 hover:border-purple-700/30"
                   href={`/courses/${favorite.code}`}
                   key={favorite.id}
                 >
-                  <p className="font-black text-emerald-800">{favorite.code}</p>
+                  <p className="font-black text-purple-800">{favorite.code}</p>
                   <p className="mt-1 text-sm font-bold">{favorite.title}</p>
                   <p className="mt-3 text-xs text-slate-500">
                     {favorite.academicYear}
@@ -68,7 +70,7 @@ export default async function ProfilePage() {
         </section>
 
         <section className="panel p-6">
-          <p className="text-xs font-black uppercase tracking-widest text-emerald-700">
+          <p className="text-xs font-black uppercase tracking-widest text-purple-700">
             Cloud schedules
           </p>
           <p className="mt-2 text-4xl font-black">{schedules.length}</p>
@@ -81,7 +83,7 @@ export default async function ProfilePage() {
         </section>
 
         <section className="panel p-6 lg:col-span-2">
-          <p className="text-xs font-black uppercase tracking-widest text-emerald-700">
+          <p className="text-xs font-black uppercase tracking-widest text-purple-700">
             Programme planning
           </p>
           <h2 className="mt-2 text-2xl font-black">

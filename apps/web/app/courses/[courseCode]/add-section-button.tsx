@@ -21,14 +21,14 @@ export function AddSectionButton({ sectionId }: { sectionId: string }) {
 
   return added ? (
     <Link
-      className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-900"
+      className="rounded-full bg-purple-100 px-4 py-2 text-sm font-bold text-purple-900"
       href="/planner"
     >
       Added · View planner
     </Link>
   ) : (
     <button
-      className="rounded-full bg-emerald-900 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800"
+      className="rounded-full bg-purple-900 px-4 py-2 text-sm font-bold text-white hover:bg-purple-800"
       onClick={add}
       type="button"
     >

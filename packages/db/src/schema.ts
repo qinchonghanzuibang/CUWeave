@@ -44,6 +44,32 @@ export const systemMetadata = pgTable('system_metadata', {
     .defaultNow(),
 })
 
+export const catalogCoverage = pgTable(
+  'catalog_coverage',
+  {
+    academicYear: text('academic_year').primaryKey(),
+    status: text('status').notNull(),
+    upstreamRevision: char('upstream_revision', { length: 40 }).notNull(),
+    expectedSubjectCount: integer('expected_subject_count').notNull(),
+    discoveredFileCount: integer('discovered_file_count').notNull(),
+    importedSubjectCount: integer('imported_subject_count').notNull(),
+    courseCount: integer('course_count').notNull(),
+    offeringCount: integer('offering_count').notNull(),
+    sectionCount: integer('section_count').notNull(),
+    instructorCount: integer('instructor_count').notNull(),
+    warningCount: integer('warning_count').notNull(),
+    report: jsonb('report').notNull(),
+    validatedAt: timestamp('validated_at', { withTimezone: true }).notNull(),
+    importedAt: timestamp('imported_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    check(
+      'catalog_coverage_status_check',
+      sql`${table.status} in ('complete', 'partial')`
+    ),
+  ]
+)
+
 export const sourceSnapshot = pgTable(
   'source_snapshot',
   {
@@ -130,6 +156,7 @@ export const course = pgTable(
   (table) => [
     unique('course_identity_unique').on(table.subjectCode, table.catalogNumber),
     index('course_code_search_idx').on(table.subjectCode, table.catalogNumber),
+    index('course_subject_idx').on(table.subjectCode),
   ]
 )
 
@@ -161,6 +188,7 @@ export const courseCatalogVersion = pgTable(
       table.academicYear,
       table.recordHash
     ),
+    index('course_catalog_title_idx').on(table.title),
   ]
 )
 
@@ -185,7 +213,7 @@ export const courseOffering = pgTable(
   (table) => [
     check(
       'course_offering_term_check',
-      sql`${table.termKey} in ('term-1', 'term-2', 'summer-session')`
+      sql`${table.termKey} in ('term-1', 'term-2', 'summer-session', 'academic-year')`
     ),
     uniqueIndex('course_offering_active_unique')
       .on(table.courseId, table.academicYear, table.termKey)
@@ -259,12 +287,16 @@ export const meeting = pgTable(
   ]
 )
 
-export const instructor = pgTable('instructor', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  displayKey: text('display_key').notNull().unique(),
-  displayValue: text('display_value').notNull(),
-  ...auditColumns,
-})
+export const instructor = pgTable(
+  'instructor',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    displayKey: text('display_key').notNull().unique(),
+    displayValue: text('display_value').notNull(),
+    ...auditColumns,
+  },
+  (table) => [index('instructor_display_idx').on(table.displayValue)]
+)
 
 export const sectionInstructor = pgTable(
   'section_instructor',

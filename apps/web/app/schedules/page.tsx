@@ -1,11 +1,13 @@
 import { listSavedSchedules } from '@cuweave/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
 import { getViewer } from '../../lib/session'
 import { ScheduleLibrary } from './schedule-library'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 export default async function SchedulesPage() {
   const viewer = await getViewer()
@@ -21,7 +23,7 @@ export default async function SchedulesPage() {
         issue revocable read-only links.
       </p>
       <ScheduleLibrary initial={await listSavedSchedules(viewer.id)} />
-      <aside className="mt-8 rounded-2xl border border-emerald-950/10 bg-emerald-50/55 p-5 text-sm text-emerald-950">
+      <aside className="mt-8 rounded-2xl border border-purple-950/10 bg-purple-50/55 p-5 text-sm text-purple-950">
         Courses in your saved schedules can be included in the{' '}
         <Link className="font-black underline" href="/requirements">
           requirement checker

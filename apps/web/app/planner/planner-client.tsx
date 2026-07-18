@@ -212,7 +212,7 @@ export function PlannerClient({
 
   return (
     <div className="mt-8 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-950/15 bg-white/65 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-950/15 bg-white/65 p-4">
         <p className="text-sm text-slate-600">
           <strong className="text-slate-900">{sectionIds.length}</strong>{' '}
           selected sections · saved locally{' '}
@@ -220,7 +220,7 @@ export function PlannerClient({
         </p>
         <div className="flex gap-2">
           <Link
-            className="rounded-full border border-emerald-900/20 px-4 py-2 text-sm font-bold"
+            className="rounded-full border border-purple-900/20 px-4 py-2 text-sm font-bold"
             href="/courses"
           >
             Add courses
@@ -269,7 +269,7 @@ export function PlannerClient({
 
       {cloudMessage ? (
         <p
-          className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-950"
+          className="rounded-xl bg-purple-50 p-3 text-sm text-purple-950"
           role="status"
         >
           {cloudMessage}
@@ -283,7 +283,7 @@ export function PlannerClient({
         </div>
       ) : null}
       {sectionIds.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-emerald-950/25 p-12 text-center">
+        <div className="rounded-3xl border border-dashed border-purple-950/25 p-12 text-center">
           <h2 className="text-2xl font-black">Your week is open.</h2>
           <p className="mt-2 text-slate-600">
             Open a course and add a section to begin.
@@ -316,11 +316,11 @@ export function PlannerClient({
       ) : null}
 
       {visibleSections.length > 0 ? (
-        <div className="overflow-x-auto rounded-3xl border border-emerald-950/15 bg-white/70 p-4">
+        <div className="overflow-x-auto rounded-3xl border border-purple-950/15 bg-white/70 p-4">
           <div className="grid min-w-[900px] grid-cols-7 gap-3">
             {weekdays.map((day, index) => (
               <section className="rounded-2xl bg-slate-50 p-3" key={day}>
-                <h2 className="text-center text-sm font-black text-emerald-900">
+                <h2 className="text-center text-sm font-black text-purple-900">
                   {day.slice(0, 3)}
                 </h2>
                 <div className="mt-3 space-y-2">
@@ -329,7 +329,7 @@ export function PlannerClient({
                       .filter((meeting) => meeting.weekday === index + 1)
                       .map((meeting) => (
                         <article
-                          className="rounded-xl bg-emerald-900 p-3 text-xs text-white shadow-sm"
+                          className="rounded-xl bg-purple-900 p-3 text-xs text-white shadow-sm"
                           key={meeting.id}
                         >
                           <p className="font-black">{section.courseCode}</p>
@@ -354,11 +354,11 @@ export function PlannerClient({
         <section className="grid gap-3 md:grid-cols-2">
           {visibleSections.map((section) => (
             <article
-              className="flex items-start justify-between gap-4 rounded-2xl border border-emerald-950/15 bg-white/65 p-4"
+              className="flex items-start justify-between gap-4 rounded-2xl border border-purple-950/15 bg-white/65 p-4"
               key={section.id}
             >
               <div>
-                <p className="font-black text-emerald-900">
+                <p className="font-black text-purple-900">
                   {section.courseCode}
                 </p>
                 <p className="mt-1 text-sm text-slate-600">

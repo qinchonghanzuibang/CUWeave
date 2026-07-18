@@ -93,17 +93,22 @@ pnpm requirements:seed
 pnpm dev
 ```
 
-Open <http://localhost:3000>. Development magic links are displayed locally when
-`AUTH_DEV_MODE=true`.
+Open <http://localhost:3000>. Public sign-in accepts only the exact
+`@link.cuhk.edu.hk` domain. An isolated local or CI environment may use the explicit
+`AUTH_DEV_MODE`, `AUTH_TEST_EMAIL_DOMAIN`, and `AUTH_TEST_OTP` overrides; production ignores them.
 
-To import the reviewed IERG and ENGG files directly from the pinned, read-only upstream checkout:
+To validate and import every subject declared by the 2026–27 manifest from the pinned, read-only
+upstream checkout:
 
 ```bash
 CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
-  pnpm data:import:local
+  pnpm data:validate:all --format text
+CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
+  DATABASE_URL="$DATABASE_URL" pnpm data:import:all --format text
 ```
 
-The command verifies the audited revision and does not copy source files into CUWeave. See the
+The commands verify the audited revision, validate the entire catalog before importing, and do not
+copy source files into CUWeave. See the
 [local import guide](docs/upstream/importing.md) for provenance and manifest requirements.
 
 ## Contributing

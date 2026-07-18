@@ -1,8 +1,15 @@
 # Accounts, schedules, and privacy
 
-Public Beta uses email magic links. CUWeave does not collect a CUHK password, OnePass credential,
-student ID, transcript, or legal name. Development sign-in previews a single-use link locally;
-production sends the link through configured SMTP.
+Public Beta uses six-digit email OTPs and accepts only normalized addresses whose exact domain is
+`link.cuhk.edu.hk`. Domain control does not prove current enrollment. CUWeave does not collect a
+CUHK password, OnePass credential, student ID, transcript, or legal name. Codes expire after five
+minutes, are hashed at rest, rotate on resend, are single-use, and allow at most three attempts.
+Production sends codes through provider-neutral SMTP and never returns or logs them.
+
+Development and CI may set an explicit test domain and fixed code only with `AUTH_DEV_MODE=true` in
+a non-production process. The fixed code is configuration, never an API response or URL. Existing
+ineligible staging accounts are retained for product-history integrity, but an operator command
+revokes their sessions and authentication accounts before public OTP is enabled.
 
 Production accepts only an exact authentication origin and configured trusted origins. Preview
 authentication is disabled unless the deployment has an isolated database and explicit opt-in.

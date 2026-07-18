@@ -143,7 +143,7 @@ export default async function RequirementAdminPage({
         general CMS.
       </p>
       {query.result ? (
-        <p className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm font-bold text-emerald-900">
+        <p className="mt-5 rounded-xl bg-purple-50 p-4 text-sm font-bold text-purple-900">
           {query.result}
         </p>
       ) : null}

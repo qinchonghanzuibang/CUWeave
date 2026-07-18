@@ -2,7 +2,8 @@ import { consumeRateLimit } from '@cuweave/db'
 import { NextResponse } from 'next/server'
 
 export const rateLimitPolicies = {
-  magicLink: { scope: 'magic-link', limit: 5, windowSeconds: 15 * 60 },
+  otpRequest: { scope: 'otp-request', limit: 5, windowSeconds: 15 * 60 },
+  otpVerify: { scope: 'otp-verify', limit: 10, windowSeconds: 15 * 60 },
   reviewWrite: { scope: 'review-write', limit: 12, windowSeconds: 60 * 60 },
   vote: { scope: 'review-vote', limit: 60, windowSeconds: 60 * 60 },
   report: { scope: 'review-report', limit: 8, windowSeconds: 60 * 60 },

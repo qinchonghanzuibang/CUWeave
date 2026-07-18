@@ -21,6 +21,8 @@ export default defineConfig({
     env: {
       ...process.env,
       AUTH_DEV_MODE: 'true',
+      AUTH_TEST_EMAIL_DOMAIN: 'cuweave.local',
+      AUTH_TEST_OTP: '123456',
       BETTER_AUTH_SECRET: 'cuweave-playwright-secret-at-least-32-characters',
       BETTER_AUTH_URL: 'http://127.0.0.1:3100',
     },

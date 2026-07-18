@@ -10,13 +10,13 @@ export default function PrivacyPage() {
       <div className="panel mt-8 space-y-6 p-6 leading-7 text-slate-700 sm:p-8">
         <p>
           CUWeave is an unofficial, student-led CUHK planning service. It
-          collects the email address used for magic-link authentication, account
-          and session records, favorites, saved schedules, requirement-plan
-          choices, reviews, votes, reports, and moderation records needed to
-          operate current features.
+          collects the email address used for one-time-code authentication,
+          account and session records, favorites, saved schedules,
+          requirement-plan choices, reviews, votes, reports, and moderation
+          records needed to operate current features.
         </p>
         <p>
-          Magic-link email is processed by the configured SMTP provider.
+          One-time-code email is processed by the configured SMTP provider.
           Sessions may record a user-agent but raw IP tracking is disabled.
           Abuse controls store only keyed hashes of request identifiers, never
           raw IP addresses. Server logs must redact secrets, email addresses,

@@ -5,6 +5,7 @@ import {
   listFavorites,
 } from '@cuweave/db'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { AddSectionButton } from './add-section-button'
@@ -14,6 +15,11 @@ import { getViewer } from '../../../lib/session'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+export const metadata: Metadata = {
+  title: 'Course details · CUWeave',
+  description:
+    'Inspect course sections, meetings, provenance, and community context. Verify all details in CUSIS.',
+}
 
 export default async function CourseDetailPage({
   params,
@@ -43,14 +49,14 @@ export default async function CourseDetailPage({
 
   return (
     <main className="page-shell py-10 sm:py-14">
-      <Link className="text-sm font-bold text-emerald-800" href="/courses">
+      <Link className="text-sm font-bold text-purple-800" href="/courses">
         ← Back to courses
       </Link>
       <div className="panel mt-6 p-6 sm:p-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
           <div>
-            <p className="font-black text-emerald-800">{course.code}</p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-emerald-950">
+            <p className="font-black text-purple-800">{course.code}</p>
+            <h1 className="mt-2 text-4xl font-black tracking-tight text-purple-950">
               {course.title}
             </h1>
             {course.academicCareer ? (
@@ -58,7 +64,7 @@ export default async function CourseDetailPage({
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2 sm:justify-end">
-            <span className="w-fit rounded-full bg-emerald-100 px-4 py-2 font-bold text-emerald-900">
+            <span className="w-fit rounded-full bg-purple-100 px-4 py-2 font-bold text-purple-900">
               {course.credits} units
             </span>
             <FavoriteButton
@@ -68,7 +74,7 @@ export default async function CourseDetailPage({
             />
           </div>
         </div>
-        <div className="mt-7 grid gap-3 border-t border-emerald-950/10 pt-5 text-sm text-slate-600 sm:grid-cols-2">
+        <div className="mt-7 grid gap-3 border-t border-purple-950/10 pt-5 text-sm text-slate-600 sm:grid-cols-2">
           <p>
             <strong className="text-slate-900">Source:</strong>{' '}
             {course.sourceName}
@@ -85,7 +91,7 @@ export default async function CourseDetailPage({
       </div>
 
       <section className="mt-8">
-        <h2 className="text-2xl font-black text-emerald-950">
+        <h2 className="text-2xl font-black text-purple-950">
           Sections · {course.academicYear}
         </h2>
         <div className="mt-4 space-y-4">
@@ -96,12 +102,12 @@ export default async function CourseDetailPage({
           ) : (
             course.sections.map((section) => (
               <article
-                className="rounded-2xl border border-emerald-950/15 bg-white/65 p-5"
+                className="rounded-2xl border border-purple-950/15 bg-white/65 p-5"
                 key={section.id}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                    <p className="text-xs font-bold uppercase tracking-wider text-purple-700">
                       {section.termName}
                     </p>
                     <h3 className="mt-1 text-lg font-black">{section.label}</h3>
@@ -156,7 +162,15 @@ export default async function CourseDetailPage({
           requirement checker
         </Link>{' '}
         to see the applicable source-backed result and any uncertainty. Always
-        verify final enrollment details in CUSIS.
+        verify final enrollment details in CUSIS. See something stale or
+        incorrect?{' '}
+        <Link
+          className="font-bold underline"
+          href={`/feedback?course=${encodeURIComponent(course.code)}`}
+        >
+          Request a data correction
+        </Link>{' '}
+        without including private student information.
       </aside>
     </main>
   )
