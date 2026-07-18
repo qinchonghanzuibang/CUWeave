@@ -46,6 +46,9 @@ export default async function RootLayout({
               <Link className="nav-link" href="/planner">
                 Planner
               </Link>
+              <Link className="nav-link" href="/requirements">
+                Requirements
+              </Link>
               {viewer ? (
                 <>
                   <Link className="nav-link" href="/schedules">
@@ -57,6 +60,11 @@ export default async function RootLayout({
                   {viewer.role !== 'user' ? (
                     <Link className="nav-link" href="/moderation">
                       Moderate
+                    </Link>
+                  ) : null}
+                  {viewer.role === 'admin' ? (
+                    <Link className="nav-link" href="/admin/requirements">
+                      Requirement admin
                     </Link>
                   ) : null}
                   <SignOutButton />
@@ -83,6 +91,20 @@ export default async function RootLayout({
           </nav>
         </header>
         {children}
+        <footer className="mt-16 border-t border-emerald-950/10 bg-white/35">
+          <div className="page-shell flex flex-col justify-between gap-5 py-8 text-sm text-slate-600 sm:flex-row">
+            <p>CUWeave is unofficial. Verify final details in CUSIS.</p>
+            <nav
+              className="flex flex-wrap gap-x-5 gap-y-2"
+              aria-label="Policies"
+            >
+              <Link href="/privacy">Privacy</Link>
+              <Link href="/terms">Terms</Link>
+              <Link href="/community-guidelines">Community</Link>
+              <Link href="/moderation-policy">Moderation</Link>
+            </nav>
+          </div>
+        </footer>
       </body>
     </html>
   )
