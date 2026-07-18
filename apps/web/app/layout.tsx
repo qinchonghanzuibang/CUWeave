@@ -36,7 +36,7 @@ export default async function RootLayout({
                 Beta
               </span>
             </Link>
-            <div className="flex flex-1 items-center justify-end gap-1 overflow-x-auto text-sm font-semibold text-slate-700">
+            <div className="flex w-full min-w-0 flex-none items-center justify-start gap-1 overflow-x-auto text-sm font-semibold text-slate-700 sm:w-auto sm:flex-1 sm:justify-end">
               <Link className="nav-link" href="/">
                 Home
               </Link>
@@ -79,7 +79,7 @@ export default async function RootLayout({
               )}
               {repositoryUrl ? (
                 <a
-                  className="nav-link hidden lg:inline-flex"
+                  className="nav-link !hidden lg:!inline-flex"
                   href={repositoryUrl}
                   rel="noreferrer"
                   target="_blank"
