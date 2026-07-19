@@ -25,6 +25,8 @@ export default defineConfig({
       AUTH_TEST_OTP: '123456',
       BETTER_AUTH_SECRET: 'cuweave-playwright-secret-at-least-32-characters',
       BETTER_AUTH_URL: 'http://127.0.0.1:3100',
+      FEATURE_REQUIREMENTS_ENABLED: 'false',
+      TRUST_PROXY_HEADERS: 'true',
     },
     url: 'http://127.0.0.1:3100/api/v1/health',
     reuseExistingServer: !process.env.CI,

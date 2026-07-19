@@ -12,6 +12,13 @@ const checks = [
   ['course detail', `/courses/${courseCode}`, 200],
   ['planner', '/planner', 200],
   ['sign in', '/sign-in', 200],
+  ['privacy', '/privacy', 200],
+  ['terms', '/terms', 200],
+  ['community guidelines', '/community-guidelines', 200],
+  ['moderation policy', '/moderation-policy', 200],
+  ['requirements disabled', '/requirements', 404],
+  ['requirement admin disabled', '/admin/requirements', 404],
+  ['requirement API disabled', '/api/v1/requirements', 404],
   ['health', '/api/v1/health', 200],
   ['anonymous schedule boundary', '/api/v1/schedules', 401],
 ]
@@ -29,6 +36,20 @@ for (const [label, path, expected] of checks) {
     const body = await response.json()
     if (body.status !== 'ready' || body.checks?.database !== 'ready')
       throw new Error('Health endpoint is not ready.')
+  }
+  if (path === '/') {
+    const body = await response.text()
+    for (const requiredLink of ['/courses', '/planner', '/sign-in'])
+      if (!body.includes(`href="${requiredLink}"`))
+        throw new Error(`Home page is missing ${requiredLink}.`)
+    for (const forbidden of [
+      'href="/requirements"',
+      'href="/schedules"',
+      '>Home</a>',
+      '>Beta<',
+    ])
+      if (body.includes(forbidden))
+        throw new Error(`Home page includes disabled navigation: ${forbidden}.`)
   }
   console.log(`PASS ${label}: ${response.status}`)
 }

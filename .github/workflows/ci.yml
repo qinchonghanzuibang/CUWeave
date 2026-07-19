@@ -100,7 +100,7 @@ jobs:
       - run: pnpm --filter @cuweave/db test
 
   e2e:
-    name: Focused public beta Web flows
+    name: Focused public Web flows
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
