@@ -191,11 +191,14 @@ export function ReviewHub({
   }
 
   return (
-    <section className="mt-12 border-t border-purple-950/10 pt-10" id="reviews">
+    <section
+      className="mt-12 border-t border-[var(--border)] pt-10"
+      id="reviews"
+    >
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div>
           <span className="eyebrow">Community context</span>
-          <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+          <h2 className="section-title mt-3">
             Ratings grounded in exact offerings.
           </h2>
           <p className="mt-3 max-w-2xl text-slate-600">
@@ -212,7 +215,7 @@ export function ReviewHub({
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {ratingDimensions.map((dimension) => (
           <div
-            className="rounded-2xl border border-purple-950/10 bg-white/65 p-4"
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
             key={dimension}
           >
             <p className="text-xs font-bold text-slate-500">
@@ -291,7 +294,7 @@ export function ReviewHub({
               onSubmit={(event) => void submit(event)}
             >
               <div className="flex items-center justify-between gap-3">
-                <h3 className="text-xl font-black">
+                <h3 className="font-display text-xl font-medium">
                   {editingId ? 'Edit your review' : 'Share structured context'}
                 </h3>
                 {editingId ? (
@@ -424,7 +427,9 @@ export function ReviewHub({
             </form>
           ) : (
             <div className="panel p-6">
-              <h3 className="text-xl font-black">Add your perspective</h3>
+              <h3 className="font-display text-xl font-medium">
+                Add your perspective
+              </h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Sign in to submit one structured review for an offering and
                 instructor scope.
@@ -438,10 +443,7 @@ export function ReviewHub({
 
         <div className="space-y-4">
           {message ? (
-            <p
-              className="rounded-xl bg-purple-50 p-3 text-sm text-purple-950"
-              role="status"
-            >
+            <p className="status-banner status-info" role="status">
               {message}
             </p>
           ) : null}
@@ -457,7 +459,7 @@ export function ReviewHub({
                       : ' · course-level'}
                   </p>
                 </div>
-                <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-black text-purple-900">
+                <span className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-2.5 py-1 text-sm font-semibold text-[var(--accent)]">
                   {review.ratings.overall}/5 overall
                 </span>
               </div>
@@ -533,8 +535,8 @@ export function ReviewHub({
             </article>
           ))}
           {!reviews.length ? (
-            <div className="rounded-3xl border border-dashed border-purple-950/20 p-10 text-center">
-              <h3 className="text-xl font-black">
+            <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-9 text-center">
+              <h3 className="font-display text-xl font-medium">
                 No reviews under these filters.
               </h3>
               <p className="mt-2 text-sm text-slate-600">

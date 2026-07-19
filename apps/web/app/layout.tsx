@@ -1,10 +1,23 @@
 import type { Metadata, Viewport } from 'next'
 import Link from 'next/link'
+import { EB_Garamond, Inter } from 'next/font/google'
 
 import { getRepositoryUrl } from '../lib/repository-url'
 import { getViewer } from '../lib/session'
 import './globals.css'
 import { SignOutButton } from './user-menu'
+
+const displayFont = EB_Garamond({
+  variable: '--font-display',
+  subsets: ['latin'],
+  display: 'swap',
+})
+
+const sansFont = Inter({
+  variable: '--font-sans',
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'),
@@ -28,23 +41,23 @@ export default async function RootLayout({
   const repositoryUrl = getRepositoryUrl()
   const viewer = await getViewer()
   return (
-    <html lang="en">
+    <html className={`${displayFont.variable} ${sansFont.variable}`} lang="en">
       <body>
-        <header className="sticky top-0 z-40 border-b border-purple-950/10 bg-[rgb(250_249_245/88%)] backdrop-blur-xl">
-          <nav className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
+        <header className="sticky top-0 z-40 border-b border-[var(--border-subtle)] bg-[rgb(247_246_242/92%)] backdrop-blur-lg">
+          <nav className="mx-auto flex w-full max-w-[76rem] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2.5 sm:px-8">
             <Link
-              className="flex items-center gap-2 text-xl font-black tracking-tight text-purple-950"
+              className="flex items-center gap-2 text-lg font-semibold tracking-tight text-[var(--text-primary)]"
               href="/"
             >
-              <span className="grid size-8 place-items-center rounded-xl bg-purple-900 text-sm text-white">
+              <span className="grid size-7 place-items-center rounded-lg bg-[var(--accent)] text-xs font-semibold text-white">
                 CW
               </span>
               CUWeave{' '}
-              <span className="hidden text-xs font-bold uppercase tracking-widest text-purple-700 sm:inline">
+              <span className="hidden text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)] sm:inline">
                 Beta
               </span>
             </Link>
-            <div className="flex w-full min-w-0 flex-none flex-wrap items-center justify-start gap-1 text-sm font-semibold text-slate-700 sm:w-auto sm:flex-1 sm:justify-end">
+            <div className="flex w-full min-w-0 flex-none flex-wrap items-center justify-start gap-0.5 sm:w-auto sm:flex-1 sm:justify-end">
               <Link className="nav-link" href="/">
                 Home
               </Link>
@@ -79,7 +92,7 @@ export default async function RootLayout({
                 </>
               ) : (
                 <Link
-                  className="button-primary whitespace-nowrap !px-4 !py-2"
+                  className="button-primary whitespace-nowrap"
                   href="/sign-in"
                 >
                   Sign in
@@ -99,8 +112,8 @@ export default async function RootLayout({
           </nav>
         </header>
         {children}
-        <footer className="mt-16 border-t border-purple-950/10 bg-white/35">
-          <div className="page-shell flex flex-col justify-between gap-5 py-8 text-sm text-slate-600 sm:flex-row">
+        <footer className="mt-14 border-t border-[var(--border-subtle)] bg-[var(--surface-raised)]">
+          <div className="page-shell flex flex-col justify-between gap-5 py-7 text-sm text-[var(--text-secondary)] sm:flex-row">
             <p>CUWeave is unofficial. Verify final details in CUSIS.</p>
             <nav
               className="flex flex-wrap gap-x-5 gap-y-2"

@@ -98,25 +98,29 @@ export function WeeklyTimetable({
   return (
     <section
       aria-label={`${label} weekly timetable`}
-      className="overflow-hidden rounded-2xl border border-purple-950/15 bg-white shadow-[0_18px_50px_rgb(117_15_109/0.07)]"
+      className="rounded-xl border border-[var(--border)] bg-[var(--surface)]"
       id="weekly-timetable-panel"
       role="tabpanel"
     >
-      <div className="overflow-x-auto overscroll-x-contain">
+      <div
+        className="block w-full overflow-x-auto overscroll-x-contain"
+        data-testid="timetable-horizontal-scroll"
+        style={{ height: 'auto', maxHeight: 'none' }}
+      >
         <div className="min-w-[1084px]">
           <div
-            className="sticky top-0 z-30 grid border-b border-purple-950/15 bg-white"
+            className="sticky top-0 z-30 grid h-10 items-center border-b border-[var(--border)] bg-[var(--surface)]"
             style={{
               gridTemplateColumns: '4.75rem repeat(7, minmax(9rem, 1fr))',
             }}
           >
             <div
               aria-hidden="true"
-              className="sticky left-0 z-40 border-r border-purple-950/15 bg-purple-50/70"
+              className="sticky left-0 z-40 border-r border-[var(--border)] bg-[var(--surface-raised)]"
             />
             {weekdays.map((day) => (
               <div
-                className="border-r border-purple-950/10 px-2 py-3 text-center text-xs font-black uppercase tracking-[0.08em] text-purple-900 last:border-r-0"
+                className="flex h-full items-center justify-center border-r border-[var(--border-subtle)] px-2 text-center text-[0.68rem] leading-none font-semibold uppercase tracking-[0.08em] text-[var(--text-secondary)] last:border-r-0"
                 key={day}
               >
                 <span className="sm:hidden">{day.slice(0, 3)}</span>
@@ -127,14 +131,15 @@ export function WeeklyTimetable({
 
           <div
             className="relative"
-            style={{ height: `${TIMETABLE_HEIGHT_PX}px` }}
+            // Include the final 23:00 border in the natural flow height.
+            style={{ height: `${TIMETABLE_HEIGHT_PX + 1}px` }}
           >
             <div aria-hidden="true" className="absolute inset-0 z-0">
               {gridMarks.map((minutes) => {
                 const isHour = minutes % 60 === 0
                 return (
                   <div
-                    className={`absolute right-0 left-0 border-t ${isHour ? 'border-purple-950/14' : 'border-slate-900/6'}`}
+                    className={`absolute right-0 left-0 border-t ${isHour ? 'border-slate-900/12' : 'border-slate-900/5'}`}
                     key={minutes}
                     style={{ top: `${positionForMinutes(minutes)}px` }}
                   />
@@ -148,10 +153,10 @@ export function WeeklyTimetable({
                 gridTemplateColumns: '4.75rem repeat(7, minmax(9rem, 1fr))',
               }}
             >
-              <aside className="sticky left-0 z-20 border-r border-purple-950/15 bg-white shadow-[4px_0_10px_rgb(37_27_37/0.04)]">
+              <aside className="sticky left-0 z-20 border-r border-[var(--border)] bg-[var(--surface)] shadow-[3px_0_7px_rgb(36_33_31/0.035)]">
                 {hourMarks.map((minutes, index) => (
                   <span
-                    className="absolute right-2 text-[0.68rem] leading-none font-bold whitespace-nowrap text-slate-500"
+                    className="absolute right-2 text-[0.65rem] leading-none font-medium whitespace-nowrap text-[var(--text-muted)]"
                     key={minutes}
                     style={{
                       top: `${positionForMinutes(minutes)}px`,
@@ -171,7 +176,7 @@ export function WeeklyTimetable({
               {weekdays.map((day, dayIndex) => (
                 <div
                   aria-label={day}
-                  className="relative min-w-0 border-r border-purple-950/10 last:border-r-0"
+                  className="relative min-w-0 border-r border-[var(--border-subtle)] last:border-r-0"
                   key={day}
                 >
                   {meetingsByDay[dayIndex]?.map((meeting) => {
@@ -188,7 +193,7 @@ export function WeeklyTimetable({
                     return (
                       <article
                         aria-label={accessibleLabel}
-                        className="absolute overflow-hidden rounded-md border border-purple-950/35 bg-purple-900 px-2 py-1.5 text-left text-white shadow-[0_2px_7px_rgb(72_7_67/0.22)] outline-none transition-[filter,box-shadow] hover:brightness-110 focus-visible:brightness-110 focus-visible:shadow-[0_0_0_3px_rgb(221_163_0/0.65)]"
+                        className="absolute overflow-hidden rounded-md border border-white/15 bg-[var(--accent)] px-2 py-1.5 text-left text-white shadow-[0_1px_3px_rgb(36_33_31/0.18)] outline-none transition-[filter,box-shadow] hover:brightness-105 focus-visible:brightness-105 focus-visible:shadow-[0_0_0_3px_var(--focus-ring)]"
                         data-end-minutes={meeting.endMinutes}
                         data-layout-column={meeting.overlap.column}
                         data-layout-columns={meeting.overlap.columnCount}
@@ -204,19 +209,19 @@ export function WeeklyTimetable({
                         tabIndex={0}
                         title={accessibleLabel}
                       >
-                        <p className="truncate text-[0.72rem] leading-4 font-black tracking-[0.01em]">
+                        <p className="truncate text-[0.7rem] leading-4 font-semibold tracking-[0.01em]">
                           {meeting.section.courseCode}
                         </p>
-                        <p className="truncate text-[0.64rem] leading-3.5 font-semibold text-purple-50">
+                        <p className="truncate text-[0.63rem] leading-3.5 font-medium text-white/95">
                           {timeRange}
                         </p>
                         {showLabel ? (
-                          <p className="mt-0.5 truncate text-[0.63rem] leading-3.5 text-purple-100">
+                          <p className="mt-0.5 truncate text-[0.62rem] leading-3.5 text-white/85">
                             {meeting.section.label}
                           </p>
                         ) : null}
                         {showLocation ? (
-                          <p className="mt-0.5 line-clamp-2 text-[0.61rem] leading-3.5 text-purple-100/90">
+                          <p className="mt-0.5 line-clamp-2 text-[0.6rem] leading-3.5 text-white/78">
                             {meeting.locationRaw}
                           </p>
                         ) : null}

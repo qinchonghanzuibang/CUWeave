@@ -126,10 +126,7 @@ export function ScheduleLibrary({
         </button>
       </section>
       {message ? (
-        <p
-          className="rounded-xl bg-purple-50 p-3 text-sm text-purple-950"
-          role="status"
-        >
+        <p className="status-banner status-info" role="status">
           {message}
         </p>
       ) : null}
@@ -138,7 +135,9 @@ export function ScheduleLibrary({
           <article className="panel p-5" key={schedule.id}>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-black">{schedule.name}</h2>
+                <h2 className="font-display text-xl font-medium">
+                  {schedule.name}
+                </h2>
                 <p className="mt-1 text-sm text-slate-600">
                   {schedule.sectionIds.length} sections · version{' '}
                   {schedule.version}
@@ -189,7 +188,7 @@ export function ScheduleLibrary({
           </article>
         ))}
         {!schedules.length ? (
-          <div className="rounded-3xl border border-dashed border-purple-950/20 p-10 text-center text-slate-600">
+          <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-9 text-center text-[var(--text-secondary)]">
             No cloud schedules yet. Import the timetable already in this
             browser.
           </div>

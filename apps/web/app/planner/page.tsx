@@ -15,11 +15,9 @@ export default async function PlannerPage() {
   const viewer = await getViewer()
   const schedules = viewer ? await listSavedSchedules(viewer.id) : []
   return (
-    <main className="page-shell py-10 sm:py-14">
+    <main className="page-shell py-9 sm:py-12">
       <span className="eyebrow">Local-first planner</span>
-      <h1 className="page-title mt-4 !text-[clamp(2.5rem,7vw,4.5rem)]">
-        Weave a workable week.
-      </h1>
+      <h1 className="page-title mt-4">Weave a workable week.</h1>
       <p className="page-lead mt-4">
         Anonymous choices stay in this browser. Sign in when you want named
         cloud copies and private synchronization. Missing teaching dates are
