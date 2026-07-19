@@ -16,7 +16,9 @@ Create the Vercel project from the repository with these exact settings:
 
 ## Environment variables
 
-Server-only in Preview/Production: `DATABASE_URL`, optional `DATABASE_MIGRATION_URL`, `DATABASE_SSL=true`, `DATABASE_POOL_MAX`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `AUTH_TRUSTED_ORIGINS`, `AUTH_SMTP_URL`, `AUTH_EMAIL_FROM`, `RATE_LIMIT_HASH_SECRET`, `TRUST_PROXY_HEADERS=true` only on the trusted platform, and `GITHUB_REPOSITORY_URL`. Never use `NEXT_PUBLIC_` for these values.
+Server-only in Preview/Production: `DATABASE_URL`, optional `DATABASE_MIGRATION_URL`, `DATABASE_SSL=true`, `DATABASE_POOL_MAX`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `AUTH_TRUSTED_ORIGINS`, `AUTH_SMTP_URL`, `AUTH_EMAIL_FROM`, optional `AUTH_OPERATOR_EMAILS`, `RATE_LIMIT_HASH_SECRET`, `TRUST_PROXY_HEADERS=true` only on the trusted platform, and `GITHUB_REPOSITORY_URL`. Never use `NEXT_PUBLIC_` for these values.
+
+`AUTH_OPERATOR_EMAILS` is a comma-separated list of exact normalized addresses for exceptional operator login. It is server-only, does not accept wildcards or domain-wide entries, and grants no role; use `role:grant` separately after the account exists.
 
 Production uses an exact HTTPS `BETTER_AUTH_URL`, its exact trusted origin, provider-neutral SMTP, the production managed PostgreSQL pool URL, and a direct migration URL if the provider recommends one. Migrations and approved imports are separate operator commands; neither runs at build or Web startup.
 
@@ -43,7 +45,7 @@ DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm auth:revoke-ineligible --app
 
 # Bootstrap roles after the account has signed in once.
 DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true \
-  pnpm role:grant maintainer@link.cuhk.edu.hk admin
+  pnpm role:grant operator@example.invalid admin
 
 # Readiness and non-destructive route checks.
 curl --fail-with-body https://cuweave.example/api/v1/health
