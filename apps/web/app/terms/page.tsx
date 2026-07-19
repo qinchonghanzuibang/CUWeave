@@ -1,3 +1,10 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms of Use',
+  description: 'Terms for using the unofficial CUWeave planning service.',
+}
+
 export default function TermsPage() {
   return (
     <main className="page-shell py-12 sm:py-16">
@@ -15,10 +22,9 @@ export default function TermsPage() {
         </p>
         <p>
           You remain responsible for verifying course availability, deadlines,
-          prerequisites, timetable details, and programme requirements in
-          official systems. Requirement results may be satisfied, missing, or
-          uncertain; only source-verified sets are labelled reliable, and even
-          those are planning guidance.
+          prerequisites and timetable details in official systems. Requirement
+          checking is currently unavailable; if reactivated, its results remain
+          planning guidance and never certify programme completion.
         </p>
         <p>
           Do not upload credentials, SID numbers, transcripts, private
@@ -30,8 +36,8 @@ export default function TermsPage() {
         <p>
           The service and its data are provided without a guarantee of accuracy
           or availability. Open-source code is licensed separately under
-          AGPL-3.0-only. This draft requires maintainer and legal review before
-          production launch.
+          AGPL-3.0-only. This policy remains subject to maintainer and legal
+          review as the service evolves.
         </p>
       </div>
     </main>

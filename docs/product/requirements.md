@@ -1,5 +1,8 @@
 # Programme requirement checker
 
+> Temporarily unavailable: the implementation and source-backed drafts are preserved, but all
+> public and administrator entry points are disabled until the rules are ready for student use.
+
 The checker combines account favorites, courses present in cloud schedules, and manually entered completed/planned courses. Users may exclude any option from an individual evaluation. Manual values are preserved as user assertions; CUWeave does not infer approval, category, or equivalence from a course code.
 
 Results are `satisfied`, `unsatisfied`, or `uncertain`. Each explanation names contributing courses, missing counts/units/courses, source links, set version, and uncertainty where relevant. A course detail page links to the checker but never claims that the course satisfies a contextual rule.

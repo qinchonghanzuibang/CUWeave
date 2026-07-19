@@ -47,8 +47,9 @@ duplicate academic rows.
 
 ## Product boundaries
 
-The Public Beta Web slice provides course search, unified detail pages, hybrid local/cloud
-planning, favorites, structured reviews, share links, a small moderation queue, and source-backed
-requirement checking. Public review queries redact anonymous authors, and share links expose
-schedule content without owner identity. CUSIS remains authoritative. Live scraping, mobile
-clients, analytics, and automatic deployment remain deferred.
+The public Web slice provides course search, unified detail pages, hybrid local/cloud planning,
+favorites, structured reviews, share links, and a small moderation queue. Public review queries
+redact anonymous authors, and share links expose schedule content without owner identity. The
+source-backed requirement engine remains implemented but is server-gated off until its rules are
+ready for public use. CUSIS remains authoritative. Live scraping, mobile clients, and analytics
+remain deferred.

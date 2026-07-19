@@ -1,5 +1,14 @@
 # Requirements and launch architecture
 
+## Public availability
+
+Requirement functionality is preserved but disabled by default through the server-only
+`FEATURE_REQUIREMENTS_ENABLED` flag. Staging and production set it explicitly to `false`. When
+disabled, public and administrator pages return 404, the API returns 404 before authentication or
+persistence, and navigation/course/profile/schedule summaries are omitted. The database schema,
+draft records, evaluator, administrative implementation, tests, and source documentation remain
+intact for a later reviewed reactivation.
+
 ## Dependency direction
 
 `@cuweave/requirements` is a framework-independent, deterministic evaluator. It accepts a versioned definition and normalized course choices; it neither queries PostgreSQL nor imports framework code. `@cuweave/db` owns persistence and reconstructs definitions from relational rows. The Next.js boundary authenticates viewers, selects a set, invokes the evaluator, and renders explanations.

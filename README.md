@@ -5,12 +5,12 @@
 **选课、评价与培养规划，一处完成。**
 
 CUWeave is an open-source academic planning platform for students at The Chinese University of
-Hong Kong. It brings course discovery, timetable planning, community experience, saved schedules,
-and source-backed programme requirements into one coherent Web experience.
+Hong Kong. It brings course discovery, timetable planning, community experience, and saved
+schedules into one coherent Web experience.
 
 [![CI](https://github.com/qinchonghanzuibang/CUWeave/actions/workflows/ci.yml/badge.svg)](https://github.com/qinchonghanzuibang/CUWeave/actions/workflows/ci.yml)
 [![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-2563eb.svg)](LICENSE)
-![Status: Public Beta](https://img.shields.io/badge/status-Public%20Beta-7c3aed.svg)
+![Status: Public](https://img.shields.io/badge/status-Public-7c3aed.svg)
 
 > **CUWeave is an unofficial, student-led project. It is not affiliated with or endorsed by CUHK.
 > Always verify final course and enrollment information in CUSIS.**
@@ -37,11 +37,12 @@ knowledge remain connected while their different sources and confidence levels s
   specific instructor across structured rating dimensions.
 - **Community safety** — Vote on reviews, report concerns, preserve revisions, and support audited
   moderation decisions.
-- **Programme requirement checking** — Combine schedule, favorite, and manually entered courses in
-  an explainable, source-linked evaluation that distinguishes satisfied, missing, and uncertain
-  requirements.
 - **Unified course details** — See academic history, current offerings, planning actions,
-  requirement context, and community experience in one place.
+  and community experience in one place.
+
+The source-backed requirement engine and its versioned data are preserved for future work, but
+requirement checking is intentionally unavailable on the public site until its rules are ready for
+student use.
 
 ## Designed for trust
 
@@ -62,10 +63,9 @@ The local import pipeline has been validated against pinned **2026–27 IERG and
 audited Another Planner revision. Real academic JSON remains outside this repository and is never
 fetched automatically.
 
-The two Information Engineering 2026 requirement sets—for the MPhil and PhD routes—remain
-**drafts**. Official material supports their minimum graduate-course counts, but complete detailed
-2026–27 study schemes are still required before the sets can be verified. CUWeave does not yet
-claim whole-university course or programme coverage.
+Draft Information Engineering requirement data is retained internally but is not exposed by the
+public site. Complete study schemes and a separate review are required before that feature can be
+reactivated. CUWeave does not claim whole-university programme coverage.
 
 ## Technology
 
@@ -89,7 +89,6 @@ pnpm db:migrate
 pnpm ingest import tests/fixtures/synthetic-subject.json \
   --manifest tests/fixtures/synthetic-manifest.json
 pnpm dev:seed
-pnpm requirements:seed
 pnpm dev
 ```
 
@@ -126,8 +125,7 @@ The current publishable policy drafts are available in the Web application and t
 - [Community Guidelines (`/community-guidelines`)](apps/web/app/community-guidelines/page.tsx)
 - [Review and Moderation Policy (`/moderation-policy`)](apps/web/app/moderation-policy/page.tsx)
 
-These drafts require the maintainer and legal review identified in the documents before a public
-production launch.
+These policy documents remain subject to maintainer and legal review as the public service evolves.
 
 ## License and acknowledgements
 

@@ -1,6 +1,6 @@
 # Accounts, schedules, and privacy
 
-Public Beta uses six-digit email OTPs and accepts only normalized addresses whose exact domain is
+The public Web application uses six-digit email OTPs and accepts only normalized addresses whose exact domain is
 `link.cuhk.edu.hk`. Domain control does not prove current enrollment. CUWeave does not collect a
 CUHK password, OnePass credential, student ID, transcript, or legal name. Codes expire after five
 minutes, are hashed at rest, rotate on resend, are single-use, and allow at most three attempts.
