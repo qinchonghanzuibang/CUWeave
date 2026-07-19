@@ -11,6 +11,10 @@ a non-production process. The fixed code is configuration, never an API response
 ineligible staging accounts are retained for product-history integrity, but an operator command
 revokes their sessions and authentication accounts before public OTP is enabled.
 
+A server-only exact-email operator allowlist may permit named maintainers to sign in without
+relaxing the public student-domain rule. It accepts no wildcard or domain-wide bypass and never
+grants moderator or administrator privileges; roles remain a separate audited operator action.
+
 Production accepts only an exact authentication origin and configured trusted origins. Preview
 authentication is disabled unless the deployment has an isolated database and explicit opt-in.
 PostgreSQL-backed abuse limits store keyed request-identifier hashes, not raw IP addresses.

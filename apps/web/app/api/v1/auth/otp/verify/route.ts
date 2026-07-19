@@ -4,7 +4,7 @@ import {
   enforceRateLimit,
   rateLimitPolicies,
 } from '../../../../../../lib/rate-limit'
-import { normalizeStudentEmail } from '../../../../../../lib/student-email'
+import { normalizeSignInEmail } from '../../../../../../lib/student-email'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     if (limited) return limited
     const body = (await request.json()) as { email?: unknown; otp?: unknown }
     const email =
-      typeof body.email === 'string' ? normalizeStudentEmail(body.email) : null
+      typeof body.email === 'string' ? normalizeSignInEmail(body.email) : null
     const otp =
       typeof body.otp === 'string' && /^\d{6}$/.test(body.otp) ? body.otp : null
     if (!email || !otp)

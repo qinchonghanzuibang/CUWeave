@@ -9,7 +9,7 @@ import { emailOTP } from 'better-auth/plugins'
 import { authBaseUrl, authTrustedOrigins } from './auth-policy'
 import { sendProductionOtp } from './otp-email'
 import { OTP_POLICY } from './otp-policy'
-import { normalizeStudentEmail } from './student-email'
+import { normalizeSignInEmail, normalizeStudentEmail } from './student-email'
 
 export function isDevelopmentAuthEnabled(): boolean {
   return (
@@ -65,7 +65,7 @@ export const auth = betterAuth({
           : null
       const email =
         typeof record?.email === 'string'
-          ? normalizeStudentEmail(record.email)
+          ? normalizeSignInEmail(record.email)
           : null
       if (!email)
         throw new APIError('BAD_REQUEST', {
@@ -112,9 +112,15 @@ export const auth = betterAuth({
         // Better Auth requires database hook callbacks to return a Promise.
         // eslint-disable-next-line @typescript-eslint/require-await
         before: async (user) => {
-          const email = normalizeStudentEmail(user.email)
+          const email = normalizeSignInEmail(user.email)
           if (!email) return false
-          return { data: { ...user, email, verifiedCuhkEmail: true } }
+          return {
+            data: {
+              ...user,
+              email,
+              verifiedCuhkEmail: normalizeStudentEmail(email) !== null,
+            },
+          }
         },
       },
     },
