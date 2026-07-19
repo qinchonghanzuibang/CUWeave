@@ -9,13 +9,16 @@ import type {
   RequirementSetDefinition,
 } from '@cuweave/requirements'
 import Link from 'next/link'
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 
+import { requirementsEnabled } from '../../lib/features'
 import { getViewer } from '../../lib/session'
 import { RequirementChecker } from './requirement-checker'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: 'Requirement checker · CUWeave',
+  title: 'Requirement checker',
   description:
     'Review draft, source-backed requirement checks with unsupported and uncertain rules shown explicitly.',
 }
@@ -26,6 +29,7 @@ export default async function RequirementsPage({
 }: {
   searchParams: Promise<{ set?: string }>
 }) {
+  if (!requirementsEnabled()) notFound()
   const viewer = await getViewer()
   let options: ProgrammeRequirementOption[] = []
   let selected: ProgrammeRequirementOption | undefined
@@ -100,4 +104,3 @@ export default async function RequirementsPage({
     </main>
   )
 }
-import type { Metadata } from 'next'

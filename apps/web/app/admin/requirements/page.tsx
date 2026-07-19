@@ -10,12 +10,15 @@ import {
   verifyRequirementSource,
 } from '@cuweave/db'
 import type { RequirementRule } from '@cuweave/requirements'
+import type { Metadata } from 'next'
 import { revalidatePath } from 'next/cache'
 import { notFound, redirect } from 'next/navigation'
 
+import { requirementsEnabled } from '../../../lib/features'
 import { getViewer } from '../../../lib/session'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 function field(form: FormData, name: string): string {
   const value = form.get(name)
@@ -23,6 +26,7 @@ function field(form: FormData, name: string): string {
 }
 
 async function admin() {
+  if (!requirementsEnabled()) notFound()
   const viewer = await getViewer()
   if (!viewer) redirect('/sign-in')
   if (viewer.role !== 'admin') notFound()
