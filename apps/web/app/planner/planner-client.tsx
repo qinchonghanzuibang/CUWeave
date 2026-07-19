@@ -2,12 +2,17 @@
 
 import type { CourseSection, SavedScheduleRecord } from '@cuweave/db'
 import {
+  ACTIVE_TERM_STORAGE_KEY,
+  deduplicatePlannerSections,
   findConflicts,
+  groupSectionsByAcademicTerm,
   parseSchedule,
   parseTeachingDates,
+  resolveActiveAcademicTerm,
   sectionCompatibility,
   serializeSchedule,
   STORAGE_KEY,
+  wallClockMinutes,
   type PlannerSection,
 } from '@cuweave/planner'
 import Link from 'next/link'
@@ -26,27 +31,22 @@ const weekdays = [
   'Sunday',
 ]
 
-function toMinutes(value: string | null): number | null {
-  if (!value) return null
-  const [hours, minutes] = value.split(':').map(Number)
-  return Number.isFinite(hours) && Number.isFinite(minutes)
-    ? (hours ?? 0) * 60 + (minutes ?? 0)
-    : null
-}
-
 function asPlannerSection(section: LoadedSection): PlannerSection {
   return {
     id: section.id,
     courseCode: section.courseCode,
     label: section.label,
+    academicYear: section.academicYear,
     termKey: section.termKey,
+    termName: section.termName,
     meetings: section.meetings.map((meeting) => ({
       id: meeting.id,
       weekday: meeting.weekday,
-      startMinutes: toMinutes(meeting.startTime),
-      endMinutes: toMinutes(meeting.endTime),
+      startMinutes: wallClockMinutes(meeting.startTime),
+      endMinutes: wallClockMinutes(meeting.endTime),
       teachingDates: parseTeachingDates(meeting.teachingDatesRaw),
       rawTime: meeting.timeRaw,
+      locationRaw: meeting.locationRaw,
     })),
   }
 }
@@ -87,14 +87,24 @@ export function PlannerClient({
     () => ''
   )
   const sectionIds = useMemo(() => parseSchedule(stored).sectionIds, [stored])
+  const storedActiveTerm = useSyncExternalStore(
+    (notify) => {
+      window.addEventListener('storage', notify)
+      window.addEventListener('cuweave:planner-term-changed', notify)
+      return () => {
+        window.removeEventListener('storage', notify)
+        window.removeEventListener('cuweave:planner-term-changed', notify)
+      }
+    },
+    () => window.localStorage.getItem(ACTIVE_TERM_STORAGE_KEY) ?? '',
+    () => ''
+  )
   const selectedCloudSchedule = cloudSchedules.find(
     (schedule) => schedule.id === selectedCloudId
   )
 
   useEffect(() => {
-    if (sectionIds.length === 0) {
-      return
-    }
+    if (sectionIds.length === 0) return
     const query = sectionIds
       .map((id) => `id=${encodeURIComponent(id)}`)
       .join('&')
@@ -114,6 +124,11 @@ export function PlannerClient({
   function store(ids: string[]) {
     window.localStorage.setItem(STORAGE_KEY, serializeSchedule(ids))
     window.dispatchEvent(new Event('cuweave:planner-changed'))
+  }
+
+  function selectAcademicTerm(id: string) {
+    window.localStorage.setItem(ACTIVE_TERM_STORAGE_KEY, id)
+    window.dispatchEvent(new Event('cuweave:planner-term-changed'))
   }
 
   function selectCloudSchedule(id: string) {
@@ -177,17 +192,31 @@ export function PlannerClient({
     )
   }
 
-  const visibleSections = useMemo(
-    () => (sectionIds.length === 0 ? [] : sections),
-    [sectionIds.length, sections]
-  )
+  const selectedSections = useMemo(() => {
+    const selected = new Set(sectionIds)
+    return sections.filter((section) => selected.has(section.id))
+  }, [sectionIds, sections])
   const plannerSections = useMemo(
-    () => visibleSections.map(asPlannerSection),
-    [visibleSections]
+    () => deduplicatePlannerSections(selectedSections.map(asPlannerSection)),
+    [selectedSections]
   )
-  const conflicts = useMemo(
-    () => findConflicts(plannerSections),
+  const termGroups = useMemo(
+    () => groupSectionsByAcademicTerm(plannerSections),
     [plannerSections]
+  )
+  const activeTerm = resolveActiveAcademicTerm(
+    storedActiveTerm || null,
+    termGroups
+  )
+  const activeGroup = termGroups.find((group) => group.id === activeTerm)
+  const visibleSections = useMemo(
+    () => activeGroup?.sections ?? [],
+    [activeGroup]
+  )
+
+  const conflicts = useMemo(
+    () => findConflicts(visibleSections),
+    [visibleSections]
   )
   const compatibilityWarnings = useMemo(() => {
     const warnings: string[] = []
@@ -215,7 +244,9 @@ export function PlannerClient({
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-950/15 bg-white/65 p-4">
         <p className="text-sm text-slate-600">
           <strong className="text-slate-900">{sectionIds.length}</strong>{' '}
-          selected sections · saved locally{' '}
+          selected sections ·{' '}
+          <strong className="text-slate-900">{visibleSections.length}</strong>{' '}
+          visible in {activeGroup?.label ?? 'the active term'} · saved locally{' '}
           {signedIn ? `· ${cloudSchedules.length} cloud schedules` : ''}
         </p>
         <div className="flex gap-2">
@@ -291,12 +322,35 @@ export function PlannerClient({
         </div>
       ) : null}
 
+      {termGroups.length > 0 ? (
+        <section aria-label="Academic term" className="space-y-3">
+          <div className="flex flex-wrap gap-2" role="tablist">
+            {termGroups.map((group) => (
+              <button
+                aria-selected={group.id === activeTerm}
+                className={`rounded-full border px-4 py-2 text-sm font-bold ${group.id === activeTerm ? 'border-purple-900 bg-purple-900 text-white' : 'border-purple-900/20 bg-white text-purple-900'}`}
+                key={group.id}
+                onClick={() => selectAcademicTerm(group.id)}
+                role="tab"
+                type="button"
+              >
+                {group.label} · {group.sections.length}
+              </button>
+            ))}
+          </div>
+          <p className="text-sm text-slate-600">
+            Showing only <strong>{activeGroup?.label}</strong> meetings in this
+            weekly timetable.
+          </p>
+        </section>
+      ) : null}
+
       {conflicts.length > 0 ? (
         <section className="grid gap-3 md:grid-cols-2">
-          {conflicts.map((conflict, index) => (
+          {conflicts.map((conflict) => (
             <div
               className={`rounded-2xl border p-4 text-sm ${conflict.kind === 'confirmed' ? 'border-red-800/20 bg-red-50 text-red-950' : 'border-amber-800/20 bg-amber-50 text-amber-950'}`}
-              key={`${conflict.message}-${index}`}
+              key={`${conflict.firstSectionId}:${conflict.secondSectionId}:${conflict.kind}:${conflict.message}`}
             >
               <strong className="capitalize">{conflict.kind} conflict</strong>
               <p className="mt-1">{conflict.message}</p>
@@ -316,7 +370,10 @@ export function PlannerClient({
       ) : null}
 
       {visibleSections.length > 0 ? (
-        <div className="overflow-x-auto rounded-3xl border border-purple-950/15 bg-white/70 p-4">
+        <div
+          aria-label={`${activeGroup?.label ?? 'Active term'} weekly timetable`}
+          className="overflow-x-auto rounded-3xl border border-purple-950/15 bg-white/70 p-4"
+        >
           <div className="grid min-w-[900px] grid-cols-7 gap-3">
             {weekdays.map((day, index) => (
               <section className="rounded-2xl bg-slate-50 p-3" key={day}>
@@ -335,7 +392,7 @@ export function PlannerClient({
                           <p className="font-black">{section.courseCode}</p>
                           <p className="mt-1 opacity-90">{section.label}</p>
                           <p className="mt-2 font-semibold">
-                            {meeting.timeRaw}
+                            {meeting.rawTime}
                           </p>
                           <p className="mt-1 opacity-80">
                             {meeting.locationRaw}
@@ -365,7 +422,8 @@ export function PlannerClient({
                   {section.label} · {section.termName}
                 </p>
                 {section.meetings.some(
-                  (meeting) => meeting.timeStatus === 'unknown'
+                  (meeting) =>
+                    meeting.startMinutes === null || meeting.endMinutes === null
                 ) ? (
                   <p className="mt-2 text-xs font-bold text-amber-800">
                     Contains TBA or unscheduled meeting details

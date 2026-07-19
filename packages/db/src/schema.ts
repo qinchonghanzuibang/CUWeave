@@ -276,6 +276,13 @@ export const meeting = pgTable(
   },
   (table) => [
     unique('meeting_section_ordinal_unique').on(table.sectionId, table.ordinal),
+    uniqueIndex('meeting_source_identity_unique').on(
+      table.sectionId,
+      table.timeRaw,
+      table.teachingDatesRaw,
+      table.locationRaw,
+      table.instructorDisplayRaw
+    ),
     check(
       'meeting_time_status_check',
       sql`${table.timeStatus} in ('parsed', 'unknown')`

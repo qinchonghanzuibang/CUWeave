@@ -57,6 +57,13 @@
       "when": 1784383290504,
       "tag": "0007_flowery_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784389623056,
+      "tag": "0008_good_wallow",
+      "breakpoints": true
     }
   ]
 }

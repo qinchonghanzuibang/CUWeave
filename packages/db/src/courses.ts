@@ -1,3 +1,5 @@
+import { normalizeCourseSearch } from '@cuweave/domain'
+
 import { getDatabaseConnection } from './client'
 
 export interface CourseSearchItem {
@@ -29,6 +31,7 @@ export interface CourseSection {
   id: string
   courseCode?: string
   label: string
+  academicYear: string
   termKey: string
   termName: string
   meetings: CourseMeeting[]
@@ -67,7 +70,7 @@ export async function searchCourses(
   options: CourseSearchOptions = {}
 ): Promise<CourseSearchResult> {
   const { pool } = getDatabaseConnection()
-  const query = options.query?.trim() ?? ''
+  const query = normalizeCourseSearch(options.query ?? '')
   const subject = options.subject?.trim().toUpperCase() ?? ''
   const term = options.term?.trim() ?? ''
   const pageSize = Math.min(Math.max(options.pageSize ?? 24, 1), 50)
@@ -99,22 +102,39 @@ export async function searchCourses(
         count(*) over()::integer as total
       from course c
       join course_catalog_version v on v.course_id = c.id and v.valid_to_import_run_id is null
-      join course_offering o on o.course_id = c.id and o.valid_to_import_run_id is null
+      join course_offering o on o.catalog_version_id = v.id and o.valid_to_import_run_id is null
       join source_snapshot s on s.id = v.last_seen_snapshot_id
       join import_run r on r.id = v.valid_from_import_run_id
       where v.academic_year = coalesce(
           (select academic_year from catalog_coverage order by academic_year desc limit 1),
           v.academic_year
         )
-        and ($1 = '' or c.subject_code || c.catalog_number ilike $1 || '%' or v.title ilike '%' || $1 || '%')
-        and ($2 = '' or c.subject_code = $2)
-        and ($3 = '' or o.term_key = $3)
+        and (
+          $1 = ''
+          or lower(c.subject_code || c.catalog_number) like $1 || '%'
+          or lower(c.catalog_number) like $1 || '%'
+          or not exists (
+            select 1
+            from unnest($2::text[]) as token
+            where regexp_replace(lower(v.title), '[^a-z0-9]+', ' ', 'g')
+              not like '%' || token || '%'
+          )
+        )
+        and ($3 = '' or c.subject_code = $3)
+        and ($4 = '' or o.term_key = $4)
       group by c.id, c.subject_code, c.catalog_number, v.id, v.title, v.credits,
         v.academic_year, s.source_name
       order by c.subject_code, c.catalog_number
-      limit $4 offset $5
+      limit $5 offset $6
     `,
-    [query, subject, term, pageSize, (page - 1) * pageSize]
+    [
+      query.compactCode,
+      query.titleTokens,
+      subject,
+      term,
+      pageSize,
+      (page - 1) * pageSize,
+    ]
   )
   const items = result.rows.map((row) => ({
     code: row.code,
@@ -247,10 +267,14 @@ export async function getCourseDetail(
       join course_catalog_version v on v.course_id = c.id and v.valid_to_import_run_id is null
       join source_snapshot snap on snap.id = v.last_seen_snapshot_id
       join import_run run on run.id = v.valid_from_import_run_id
-      left join course_offering o on o.course_id = c.id and o.valid_to_import_run_id is null
+      left join course_offering o on o.catalog_version_id = v.id and o.valid_to_import_run_id is null
       left join section sec on sec.offering_id = o.id and sec.valid_to_import_run_id is null
       left join meeting m on m.section_id = sec.id
       where c.subject_code = $1 and c.catalog_number = $2
+        and v.academic_year = coalesce(
+          (select academic_year from catalog_coverage order by academic_year desc limit 1),
+          v.academic_year
+        )
       order by o.term_key, sec.section_key, m.ordinal
     `,
     [match[1], match[2]]
@@ -271,6 +295,7 @@ export async function getCourseDetail(
       section = {
         id: row.section_id,
         label: row.section_label,
+        academicYear: row.academic_year,
         termKey: row.term_key,
         termName: row.term_name,
         meetings: [],
@@ -324,6 +349,7 @@ export async function getSectionsByIds(
         jsonb_build_object(
           'id', sec.id::text,
           'label', sec.section_label_raw,
+          'academicYear', o.academic_year,
           'termKey', o.term_key,
           'termName', o.term_name_raw,
           'meetings', coalesce(jsonb_agg(jsonb_build_object(

@@ -61,6 +61,36 @@ def test_real_import_and_duplicate_idempotency() -> None:
     assert counts() == before
 
 
+def test_exact_duplicate_source_meeting_creates_one_database_row() -> None:
+    raw, manifest = fixture()
+    document = json.loads(raw)
+    meetings = document["courses"][0]["terms"][0]["schedule"][0]["meetings"]
+    meetings.append(dict(meetings[0]))
+    duplicated = json.dumps(document, sort_keys=True).encode()
+    snapshot = adapt(duplicated, manifest)
+    import_snapshot(duplicated.decode(), snapshot, manifest, DATABASE_URL)
+    assert counts()["meeting"] == 5
+
+
+def test_database_rejects_exact_duplicate_meeting_identity() -> None:
+    raw, manifest = fixture()
+    import_snapshot(raw.decode(), adapt(raw, manifest), manifest, DATABASE_URL)
+    assert DATABASE_URL
+    with psycopg.connect(DATABASE_URL, autocommit=True) as connection:
+        with connection.cursor() as cursor, pytest.raises(psycopg.errors.UniqueViolation):
+            cursor.execute(
+                """
+                insert into meeting (
+                  section_id, ordinal, time_raw, time_status, weekday, start_time,
+                  end_time, teaching_dates_raw, location_raw, instructor_display_raw
+                )
+                select section_id, 32767, time_raw, time_status, weekday, start_time,
+                  end_time, teaching_dates_raw, location_raw, instructor_display_raw
+                from meeting order by id limit 1
+                """
+            )
+
+
 def test_changed_section_history_and_complete_retirement() -> None:
     raw, manifest = fixture()
     import_snapshot(raw.decode(), adapt(raw, manifest), manifest, DATABASE_URL)
@@ -76,9 +106,9 @@ def test_changed_section_history_and_complete_retirement() -> None:
     assert DATABASE_URL
     with psycopg.connect(DATABASE_URL) as connection, connection.cursor() as cursor:
         cursor.execute("select count(*) from section")
-        assert cursor.fetchone()[0] == 3
+        assert cursor.fetchone()[0] == 4
         cursor.execute("select count(*) from section where valid_to_import_run_id is null")
-        assert cursor.fetchone()[0] == 1
+        assert cursor.fetchone()[0] == 2
 
 
 def test_incomplete_snapshot_does_not_retire_and_failure_rolls_back() -> None:
