@@ -26,9 +26,16 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
   await expect(page.getByText('Uncertain conflict').first()).toBeVisible()
   await expect(page.getByText(/may overlap/).first()).toBeVisible()
   const termOne = page.getByLabel('2099-00 Term 1 weekly timetable')
+  await expect(termOne.getByText('8:00 AM')).toBeVisible()
+  await expect(termOne.getByText('11:00 PM')).toBeVisible()
+  await expect(termOne.getByLabel('Saturday')).toBeVisible()
+  await expect(termOne.getByLabel('Sunday')).toBeVisible()
   await expect(termOne.locator('article', { hasText: 'ZZZZ1001' })).toHaveCount(
     1
   )
+  await expect(
+    termOne.locator('article', { hasText: 'ZZZZ1001' })
+  ).toHaveAttribute('data-start-minutes', '570')
   await expect(termOne.locator('article', { hasText: 'ZZZZ1003' })).toHaveCount(
     0
   )
