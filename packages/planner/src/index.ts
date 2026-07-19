@@ -45,8 +45,114 @@ export interface StoredScheduleV1 {
   sectionIds: string[]
 }
 
+export interface TimetableMeetingInput {
+  id: string
+  startMinutes: number
+  endMinutes: number
+}
+
+export interface TimetableMeetingLayout extends TimetableMeetingInput {
+  column: number
+  columnCount: number
+  leftPercent: number
+  widthPercent: number
+}
+
+export interface TimetableVerticalLayout {
+  topPx: number
+  heightPx: number
+}
+
 export const STORAGE_KEY = 'cuweave.planner.v1'
 export const ACTIVE_TERM_STORAGE_KEY = 'cuweave.planner.active-term.v1'
+export const TIMETABLE_START_MINUTES = 8 * 60
+export const TIMETABLE_END_MINUTES = 23 * 60
+export const TIMETABLE_INTERVAL_MINUTES = 30
+export const TIMETABLE_HOUR_HEIGHT_PX = 52
+export const TIMETABLE_MIN_MEETING_HEIGHT_PX = 28
+export const TIMETABLE_HEIGHT_PX =
+  ((TIMETABLE_END_MINUTES - TIMETABLE_START_MINUTES) / 60) *
+  TIMETABLE_HOUR_HEIGHT_PX
+
+export function minutesSinceTimetableStart(minutes: number): number {
+  return minutes - TIMETABLE_START_MINUTES
+}
+
+export function minutesToTimetableOffset(minutes: number): number {
+  return (minutesSinceTimetableStart(minutes) / 60) * TIMETABLE_HOUR_HEIGHT_PX
+}
+
+export function meetingVerticalLayout(
+  startMinutes: number,
+  endMinutes: number
+): TimetableVerticalLayout | null {
+  if (
+    !Number.isFinite(startMinutes) ||
+    !Number.isFinite(endMinutes) ||
+    endMinutes <= startMinutes ||
+    endMinutes <= TIMETABLE_START_MINUTES ||
+    startMinutes >= TIMETABLE_END_MINUTES
+  )
+    return null
+
+  const visibleStart = Math.max(startMinutes, TIMETABLE_START_MINUTES)
+  const visibleEnd = Math.min(endMinutes, TIMETABLE_END_MINUTES)
+  const topPx = minutesToTimetableOffset(visibleStart)
+  const actualHeightPx = minutesToTimetableOffset(visibleEnd) - topPx
+  const availableHeightPx = TIMETABLE_HEIGHT_PX - topPx
+
+  return {
+    topPx,
+    heightPx: Math.min(
+      Math.max(actualHeightPx, TIMETABLE_MIN_MEETING_HEIGHT_PX),
+      availableHeightPx
+    ),
+  }
+}
+
+export function layoutOverlappingMeetings(
+  meetings: TimetableMeetingInput[]
+): TimetableMeetingLayout[] {
+  const sorted = [...meetings].sort(
+    (first, second) =>
+      first.startMinutes - second.startMinutes ||
+      first.endMinutes - second.endMinutes ||
+      first.id.localeCompare(second.id)
+  )
+  const groups: TimetableMeetingInput[][] = []
+  let groupEnd = Number.NEGATIVE_INFINITY
+
+  for (const meeting of sorted) {
+    if (groups.length === 0 || meeting.startMinutes >= groupEnd) {
+      groups.push([meeting])
+      groupEnd = meeting.endMinutes
+    } else {
+      groups.at(-1)!.push(meeting)
+      groupEnd = Math.max(groupEnd, meeting.endMinutes)
+    }
+  }
+
+  return groups.flatMap((group) => {
+    const columnEnds: number[] = []
+    const assignments = group.map((meeting) => {
+      let column = columnEnds.findIndex(
+        (endMinutes) => endMinutes <= meeting.startMinutes
+      )
+      if (column === -1) column = columnEnds.length
+      columnEnds[column] = meeting.endMinutes
+      return { meeting, column }
+    })
+    const columnCount = columnEnds.length
+
+    return assignments.map(({ meeting, column }) => ({
+      ...meeting,
+      column,
+      columnCount,
+      leftPercent: (column / columnCount) * 100,
+      widthPercent: 100 / columnCount,
+    }))
+  })
+}
 
 export function wallClockMinutes(value: string | null): number | null {
   if (!value) return null

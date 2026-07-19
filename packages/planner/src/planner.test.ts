@@ -6,10 +6,14 @@ import {
   findConflicts,
   groupSectionsByAcademicTerm,
   intervalsOverlap,
+  layoutOverlappingMeetings,
+  meetingVerticalLayout,
+  minutesToTimetableOffset,
   parseSchedule,
   resolveActiveAcademicTerm,
   sectionCompatibility,
   serializeSchedule,
+  TIMETABLE_HEIGHT_PX,
   wallClockMinutes,
   type PlannerSection,
 } from './index'
@@ -235,5 +239,67 @@ describe('generic weekly meeting normalization', () => {
     expect(wallClockMinutes('13:30:00')).toBe(810)
     expect(wallClockMinutes('12:30')).toBe(750)
     expect(wallClockMinutes('24:00')).toBeNull()
+  })
+})
+
+describe('weekly timetable layout', () => {
+  it('positions meetings beginning on the hour and half hour', () => {
+    expect(minutesToTimetableOffset(9 * 60)).toBe(52)
+    expect(minutesToTimetableOffset(9 * 60 + 30)).toBe(78)
+    expect(meetingVerticalLayout(9 * 60, 10 * 60)?.topPx).toBe(52)
+    expect(meetingVerticalLayout(9 * 60 + 30, 10 * 60)?.topPx).toBe(78)
+  })
+
+  it('uses the real duration for a multi-hour meeting', () => {
+    expect(meetingVerticalLayout(13 * 60 + 30, 16 * 60 + 15)).toEqual({
+      topPx: 286,
+      heightPx: 143,
+    })
+  })
+
+  it('keeps a meeting near the timetable end inside the full grid', () => {
+    expect(meetingVerticalLayout(22 * 60 + 30, 23 * 60)).toEqual({
+      topPx: 754,
+      heightPx: 26,
+    })
+    expect(TIMETABLE_HEIGHT_PX).toBe(780)
+    expect(meetingVerticalLayout(23 * 60, 23 * 60 + 30)).toBeNull()
+  })
+
+  it('allocates simultaneous meetings side by side and reuses free columns', () => {
+    const layouts = layoutOverlappingMeetings([
+      { id: 'first', startMinutes: 9 * 60, endMinutes: 11 * 60 },
+      { id: 'second', startMinutes: 9 * 60 + 30, endMinutes: 10 * 60 },
+      { id: 'third', startMinutes: 10 * 60, endMinutes: 10 * 60 + 30 },
+    ])
+    expect(layouts).toEqual([
+      {
+        id: 'first',
+        startMinutes: 540,
+        endMinutes: 660,
+        column: 0,
+        columnCount: 2,
+        leftPercent: 0,
+        widthPercent: 50,
+      },
+      {
+        id: 'second',
+        startMinutes: 570,
+        endMinutes: 600,
+        column: 1,
+        columnCount: 2,
+        leftPercent: 50,
+        widthPercent: 50,
+      },
+      {
+        id: 'third',
+        startMinutes: 600,
+        endMinutes: 630,
+        column: 1,
+        columnCount: 2,
+        leftPercent: 50,
+        widthPercent: 50,
+      },
+    ])
   })
 })

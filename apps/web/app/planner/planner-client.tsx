@@ -18,18 +18,10 @@ import {
 import Link from 'next/link'
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
+import { WeeklyTimetable } from './weekly-timetable'
+
 type LoadedSection = CourseSection & { courseCode: string }
 const CLOUD_SCHEDULE_KEY = 'cuweave:cloud-schedule-id'
-
-const weekdays = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-]
 
 function asPlannerSection(section: LoadedSection): PlannerSection {
   return {
@@ -327,8 +319,10 @@ export function PlannerClient({
           <div className="flex flex-wrap gap-2" role="tablist">
             {termGroups.map((group) => (
               <button
+                aria-controls="weekly-timetable-panel"
                 aria-selected={group.id === activeTerm}
                 className={`rounded-full border px-4 py-2 text-sm font-bold ${group.id === activeTerm ? 'border-purple-900 bg-purple-900 text-white' : 'border-purple-900/20 bg-white text-purple-900'}`}
+                id={`academic-term-tab-${group.id}`}
                 key={group.id}
                 onClick={() => selectAcademicTerm(group.id)}
                 role="tab"
@@ -370,41 +364,10 @@ export function PlannerClient({
       ) : null}
 
       {visibleSections.length > 0 ? (
-        <div
-          aria-label={`${activeGroup?.label ?? 'Active term'} weekly timetable`}
-          className="overflow-x-auto rounded-3xl border border-purple-950/15 bg-white/70 p-4"
-        >
-          <div className="grid min-w-[900px] grid-cols-7 gap-3">
-            {weekdays.map((day, index) => (
-              <section className="rounded-2xl bg-slate-50 p-3" key={day}>
-                <h2 className="text-center text-sm font-black text-purple-900">
-                  {day.slice(0, 3)}
-                </h2>
-                <div className="mt-3 space-y-2">
-                  {visibleSections.flatMap((section) =>
-                    section.meetings
-                      .filter((meeting) => meeting.weekday === index + 1)
-                      .map((meeting) => (
-                        <article
-                          className="rounded-xl bg-purple-900 p-3 text-xs text-white shadow-sm"
-                          key={meeting.id}
-                        >
-                          <p className="font-black">{section.courseCode}</p>
-                          <p className="mt-1 opacity-90">{section.label}</p>
-                          <p className="mt-2 font-semibold">
-                            {meeting.rawTime}
-                          </p>
-                          <p className="mt-1 opacity-80">
-                            {meeting.locationRaw}
-                          </p>
-                        </article>
-                      ))
-                  )}
-                </div>
-              </section>
-            ))}
-          </div>
-        </div>
+        <WeeklyTimetable
+          label={activeGroup?.label ?? 'Active term'}
+          sections={visibleSections}
+        />
       ) : null}
 
       {visibleSections.length > 0 ? (
