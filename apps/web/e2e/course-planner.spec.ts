@@ -30,6 +30,16 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
   await expect(termOne.getByText('11:00 PM')).toBeVisible()
   await expect(termOne.getByLabel('Saturday')).toBeVisible()
   await expect(termOne.getByLabel('Sunday')).toBeVisible()
+  const timetableScroller = termOne.getByTestId('timetable-horizontal-scroll')
+  const desktopOverflow = await timetableScroller.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    inlineHeight: element.style.height,
+    inlineMaxHeight: element.style.maxHeight,
+  }))
+  expect(desktopOverflow.scrollHeight).toBe(desktopOverflow.clientHeight)
+  expect(desktopOverflow.inlineHeight).toBe('auto')
+  expect(desktopOverflow.inlineMaxHeight).toBe('none')
   await expect(termOne.locator('article', { hasText: 'ZZZZ1001' })).toHaveCount(
     1
   )
@@ -38,6 +48,21 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
   ).toHaveAttribute('data-start-minutes', '570')
   await expect(termOne.locator('article', { hasText: 'ZZZZ1003' })).toHaveCount(
     0
+  )
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  const narrowOverflow = await timetableScroller.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    clientWidth: element.clientWidth,
+    scrollHeight: element.scrollHeight,
+    scrollWidth: element.scrollWidth,
+    documentClientWidth: document.documentElement.clientWidth,
+    documentScrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(narrowOverflow.scrollWidth).toBeGreaterThan(narrowOverflow.clientWidth)
+  expect(narrowOverflow.scrollHeight).toBe(narrowOverflow.clientHeight)
+  expect(narrowOverflow.documentScrollWidth).toBeLessThanOrEqual(
+    narrowOverflow.documentClientWidth + 1
   )
 
   await page.getByRole('tab', { name: /2099-00 Term 2/ }).click()

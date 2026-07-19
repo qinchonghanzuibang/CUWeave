@@ -55,8 +55,10 @@ export default async function FeedbackPage({
                 : '',
           })
           return (
-            <article className="panel p-6" key={title}>
-              <h2 className="text-xl font-black text-purple">{title}</h2>
+            <article className="panel p-5 sm:p-6" key={title}>
+              <h2 className="font-display text-xl font-medium text-[var(--text-primary)]">
+                {title}
+              </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{copy}</p>
               {repo ? (
                 <a

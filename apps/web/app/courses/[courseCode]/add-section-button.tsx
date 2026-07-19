@@ -20,18 +20,11 @@ export function AddSectionButton({ sectionId }: { sectionId: string }) {
   }
 
   return added ? (
-    <Link
-      className="rounded-full bg-purple-100 px-4 py-2 text-sm font-bold text-purple-900"
-      href="/planner"
-    >
+    <Link className="button-secondary" href="/planner">
       Added · View planner
     </Link>
   ) : (
-    <button
-      className="rounded-full bg-purple-900 px-4 py-2 text-sm font-bold text-white hover:bg-purple-800"
-      onClick={add}
-      type="button"
-    >
+    <button className="button-primary" onClick={add} type="button">
       Add to planner
     </button>
   )

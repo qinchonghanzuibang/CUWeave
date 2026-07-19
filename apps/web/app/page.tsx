@@ -22,12 +22,12 @@ function StatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${
-        ready ? 'bg-purple-100 text-purple-900' : 'bg-amber-100 text-amber-950'
+      className={`inline-flex items-center gap-2 text-sm font-medium ${
+        ready ? 'text-[var(--success)]' : 'text-[var(--warning)]'
       }`}
     >
       <span
-        className={`h-2 w-2 rounded-full ${ready ? 'bg-purple-600' : 'bg-amber-600'}`}
+        className={`h-1.5 w-1.5 rounded-full ${ready ? 'bg-emerald-700' : 'bg-amber-700'}`}
       />
       {children}
     </span>
@@ -79,48 +79,48 @@ export default async function Home() {
     },
   ]
   return (
-    <main className="page-shell flex min-h-[calc(100vh-73px)] flex-col py-8 sm:py-12">
-      <section className="grid flex-1 items-center gap-10 py-14 lg:grid-cols-[1.2fr_0.8fr] lg:py-20">
+    <main className="page-shell py-8 sm:py-10">
+      <section className="grid items-center gap-8 py-8 lg:grid-cols-[1.35fr_0.65fr] lg:py-12">
         <div>
-          <p className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-purple-800">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
             CUWeave Public Beta
           </p>
-          <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-[-0.045em] text-purple-950 sm:text-7xl">
+          <h1 className="hero-title">
             One calmer place to shape your CUHK term.
           </h1>
-          <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl">
+          <p className="mt-5 max-w-[39rem] text-base leading-7 text-[var(--text-secondary)] sm:text-[1.05rem]">
             Explore pinned course data, compare community context, catch
             timetable uncertainty, and keep private schedules together—without
             giving us your OnePass credentials or student records.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link className="button-primary !px-5 !py-3" href="/courses">
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            <Link className="button-primary" href="/courses">
               Explore courses
             </Link>
-            <Link className="button-secondary !px-5 !py-3" href="/planner">
+            <Link className="button-secondary" href="/planner">
               Open planner
             </Link>
             {!viewer ? (
-              <Link className="button-secondary !px-5 !py-3" href="/sign-in">
+              <Link className="button-ghost" href="/sign-in">
                 Save your work
               </Link>
             ) : null}
           </div>
         </div>
 
-        <aside className="panel p-6 sm:p-8">
-          <h2 className="text-xl font-extrabold text-purple-950">
-            System status
-          </h2>
-          <dl className="mt-6 space-y-5">
-            <div className="flex items-center justify-between gap-4 border-b border-purple-950/10 pb-5">
-              <dt className="text-slate-600">Application</dt>
+        <aside className="panel p-5 sm:p-6">
+          <h2 className="section-title !text-[1.55rem]">System status</h2>
+          <dl className="mt-4 space-y-3.5">
+            <div className="flex items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-3.5">
+              <dt className="text-sm text-[var(--text-secondary)]">
+                Application
+              </dt>
               <dd>
                 <StatusBadge ready>Live</StatusBadge>
               </dd>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <dt className="text-slate-600">Database</dt>
+              <dt className="text-sm text-[var(--text-secondary)]">Database</dt>
               <dd>
                 <StatusBadge ready={databaseReady}>
                   {databaseReady ? 'Ready' : 'Unavailable'}
@@ -128,30 +128,34 @@ export default async function Home() {
               </dd>
             </div>
           </dl>
-          <p className="mt-7 text-sm leading-6 text-slate-600">
+          <p className="mt-5 text-sm leading-6 text-[var(--text-muted)]">
             Course data comes from explicitly pinned local snapshots. Database
             checks and course queries run only when requested.
           </p>
         </aside>
       </section>
 
-      <section className="grid gap-4 pb-14 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 pb-10 sm:grid-cols-2 lg:grid-cols-4">
         {featureCards.map((card) => (
           <Link
-            className="panel group p-5 transition hover:-translate-y-1"
+            className="panel group p-5 transition-colors hover:border-[rgb(111_45_108/35%)]"
             href={card.href}
             key={card.number}
           >
-            <span className="text-xs font-black text-purple-700">
+            <span className="text-xs font-semibold text-[var(--text-muted)]">
               {card.number}
             </span>
-            <h2 className="mt-8 text-xl font-black">{card.title}</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{card.copy}</p>
+            <h2 className="mt-6 font-display text-[1.45rem] font-medium">
+              {card.title}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+              {card.copy}
+            </p>
           </Link>
         ))}
       </section>
 
-      <footer className="grid gap-3 border-t border-purple-950/15 py-6 text-sm leading-6 text-slate-600 sm:grid-cols-2">
+      <footer className="grid gap-3 border-t border-[var(--border)] py-6 text-sm leading-6 text-[var(--text-secondary)] sm:grid-cols-2">
         <p>
           CUWeave is unofficial and is not affiliated with or endorsed by CUHK.
         </p>

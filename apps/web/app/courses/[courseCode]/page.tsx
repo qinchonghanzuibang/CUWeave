@@ -48,15 +48,17 @@ export default async function CourseDetailPage({
   ])
 
   return (
-    <main className="page-shell py-10 sm:py-14">
-      <Link className="text-sm font-bold text-purple-800" href="/courses">
+    <main className="page-shell py-9 sm:py-12">
+      <Link className="text-link text-sm" href="/courses">
         ← Back to courses
       </Link>
       <div className="panel mt-6 p-6 sm:p-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
           <div>
-            <p className="font-black text-purple-800">{course.code}</p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-purple-950">
+            <p className="text-sm font-semibold text-[var(--accent)]">
+              {course.code}
+            </p>
+            <h1 className="page-title mt-2 !text-[clamp(2.2rem,4vw,3rem)]">
               {course.title}
             </h1>
             {course.academicCareer ? (
@@ -64,7 +66,7 @@ export default async function CourseDetailPage({
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2 sm:justify-end">
-            <span className="w-fit rounded-full bg-purple-100 px-4 py-2 font-bold text-purple-900">
+            <span className="w-fit rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)]">
               {course.credits} units
             </span>
             <FavoriteButton
@@ -74,7 +76,7 @@ export default async function CourseDetailPage({
             />
           </div>
         </div>
-        <div className="mt-7 grid gap-3 border-t border-purple-950/10 pt-5 text-sm text-slate-600 sm:grid-cols-2">
+        <div className="mt-7 grid gap-3 border-t border-[var(--border-subtle)] pt-5 text-sm text-[var(--text-secondary)] sm:grid-cols-2">
           <p>
             <strong className="text-slate-900">Source:</strong>{' '}
             {course.sourceName}
@@ -91,7 +93,7 @@ export default async function CourseDetailPage({
       </div>
 
       <section className="mt-8">
-        <h2 className="text-2xl font-black text-purple-950">
+        <h2 className="section-title !text-[1.8rem]">
           Sections · {course.academicYear}
         </h2>
         <div className="mt-4 space-y-4">
@@ -102,15 +104,17 @@ export default async function CourseDetailPage({
           ) : (
             course.sections.map((section) => (
               <article
-                className="rounded-2xl border border-purple-950/15 bg-white/65 p-5"
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
                 key={section.id}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-purple-700">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                       {section.termName}
                     </p>
-                    <h3 className="mt-1 text-lg font-black">{section.label}</h3>
+                    <h3 className="mt-1 text-lg font-semibold">
+                      {section.label}
+                    </h3>
                   </div>
                   <AddSectionButton sectionId={section.id} />
                 </div>
@@ -122,7 +126,7 @@ export default async function CourseDetailPage({
                   ) : (
                     section.meetings.map((meeting) => (
                       <div
-                        className="grid gap-2 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-2"
+                        className="grid gap-2 rounded-lg bg-[var(--surface-raised)] p-4 text-sm sm:grid-cols-2"
                         key={meeting.id}
                       >
                         <p>

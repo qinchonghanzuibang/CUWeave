@@ -13,19 +13,17 @@ export default async function SchedulesPage() {
   const viewer = await getViewer()
   if (!viewer) redirect('/sign-in')
   return (
-    <main className="page-shell py-10 sm:py-14">
+    <main className="page-shell py-9 sm:py-12">
       <span className="eyebrow">Private cloud library</span>
-      <h1 className="page-title mt-4 !text-[clamp(2.5rem,7vw,4.5rem)]">
-        Schedules that travel with you.
-      </h1>
+      <h1 className="page-title mt-4">Schedules that travel with you.</h1>
       <p className="page-lead mt-4">
         Create named versions, move the anonymous planner into your account, and
         issue revocable read-only links.
       </p>
       <ScheduleLibrary initial={await listSavedSchedules(viewer.id)} />
-      <aside className="mt-8 rounded-2xl border border-purple-950/10 bg-purple-50/55 p-5 text-sm text-purple-950">
+      <aside className="status-banner status-info mt-7 p-4">
         Courses in your saved schedules can be included in the{' '}
-        <Link className="font-black underline" href="/requirements">
+        <Link className="text-link" href="/requirements">
           requirement checker
         </Link>
         . Inclusion does not imply that a Division has approved the course.

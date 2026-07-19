@@ -58,13 +58,11 @@ export default async function CoursesPage({
   }
 
   return (
-    <main className="page-shell py-10 sm:py-14">
+    <main className="page-shell py-9 sm:py-12">
       <span className="eyebrow">Course explorer</span>
       <div className="mt-3 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="page-title !text-[clamp(2.5rem,7vw,4.5rem)]">
-            Find your next course.
-          </h1>
+          <h1 className="page-title">Find your next course.</h1>
           <p className="page-lead mt-3">
             Search the imported catalog by code or title, then inspect real
             sections and meetings.
@@ -124,18 +122,18 @@ export default async function CoursesPage({
             </option>
           ))}
         </select>
-        <button className="button-primary !rounded-xl" type="submit">
+        <button className="button-primary" type="submit">
           Search
         </button>
       </form>
 
       {unavailable ? (
-        <div className="mt-8 rounded-2xl border border-amber-900/20 bg-amber-50 p-6 text-amber-950">
+        <div className="status-banner status-warning mt-8 p-5">
           <strong>Course data is unavailable.</strong> PostgreSQL could not be
           reached; no placeholder results are shown.
         </div>
       ) : result.items.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-purple/25 p-10 text-center text-slate-600">
+        <div className="mt-8 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-9 text-center text-[var(--text-secondary)]">
           {coverage
             ? 'No imported courses match these filters.'
             : 'Course data has not been imported yet.'}
@@ -144,28 +142,30 @@ export default async function CoursesPage({
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {result.items.map((course) => (
             <Link
-              className="panel group p-5 transition hover:-translate-y-0.5 hover:shadow-md"
+              className="panel group p-5 transition-colors hover:border-[rgb(111_45_108/35%)]"
               href={`/courses/${course.code}`}
               key={course.code}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="font-black text-purple">{course.code}</p>
-                  <h2 className="mt-1 text-xl font-bold text-slate-900">
+                  <p className="text-sm font-semibold text-[var(--accent)]">
+                    {course.code}
+                  </p>
+                  <h2 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
                     {course.title}
                   </h2>
                 </div>
-                <span className="rounded-full bg-purple-pale px-3 py-1 text-sm font-bold text-purple">
+                <span className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)]">
                   {course.credits} units
                 </span>
               </div>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-                <span className="rounded-full bg-slate-100 px-3 py-1">
+              <div className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-[var(--text-secondary)]">
+                <span className="rounded-md bg-slate-100 px-2.5 py-1">
                   {course.academicYear}
                 </span>
                 {course.terms.map((term) => (
                   <span
-                    className="rounded-full bg-slate-100 px-3 py-1"
+                    className="rounded-md bg-slate-100 px-2.5 py-1"
                     key={term}
                   >
                     {term}

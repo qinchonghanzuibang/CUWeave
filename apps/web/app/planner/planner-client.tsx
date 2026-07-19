@@ -232,20 +232,17 @@ export function PlannerClient({
   }, [plannerSections])
 
   return (
-    <div className="mt-8 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-purple-950/15 bg-white/65 p-4">
-        <p className="text-sm text-slate-600">
+    <div className="mt-7 space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+        <p className="text-sm text-[var(--text-secondary)]">
           <strong className="text-slate-900">{sectionIds.length}</strong>{' '}
           selected sections ·{' '}
           <strong className="text-slate-900">{visibleSections.length}</strong>{' '}
           visible in {activeGroup?.label ?? 'the active term'} · saved locally{' '}
           {signedIn ? `· ${cloudSchedules.length} cloud schedules` : ''}
         </p>
-        <div className="flex gap-2">
-          <Link
-            className="rounded-full border border-purple-900/20 px-4 py-2 text-sm font-bold"
-            href="/courses"
-          >
+        <div className="flex flex-wrap gap-2">
+          <Link className="button-secondary" href="/courses">
             Add courses
           </Link>
           {signedIn ? (
@@ -281,7 +278,7 @@ export function PlannerClient({
             </Link>
           )}
           <button
-            className="rounded-full border border-red-900/20 px-4 py-2 text-sm font-bold text-red-800"
+            className="button-danger"
             onClick={() => store([])}
             type="button"
           >
@@ -291,23 +288,22 @@ export function PlannerClient({
       </div>
 
       {cloudMessage ? (
-        <p
-          className="rounded-xl bg-purple-50 p-3 text-sm text-purple-950"
-          role="status"
-        >
+        <p className="status-banner status-info" role="status">
           {cloudMessage}
         </p>
       ) : null}
 
       {unavailable && sectionIds.length > 0 ? (
-        <div className="rounded-2xl border border-amber-900/20 bg-amber-50 p-5 text-amber-950">
+        <div className="status-banner status-warning p-4">
           Selected section IDs are safe, but course details are unavailable
           while PostgreSQL is offline.
         </div>
       ) : null}
       {sectionIds.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-purple-950/25 p-12 text-center">
-          <h2 className="text-2xl font-black">Your week is open.</h2>
+        <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-10 text-center">
+          <h2 className="font-display text-2xl font-medium">
+            Your week is open.
+          </h2>
           <p className="mt-2 text-slate-600">
             Open a course and add a section to begin.
           </p>
@@ -321,7 +317,7 @@ export function PlannerClient({
               <button
                 aria-controls="weekly-timetable-panel"
                 aria-selected={group.id === activeTerm}
-                className={`rounded-full border px-4 py-2 text-sm font-bold ${group.id === activeTerm ? 'border-purple-900 bg-purple-900 text-white' : 'border-purple-900/20 bg-white text-purple-900'}`}
+                className={`rounded-lg border px-3.5 py-2 text-sm font-semibold ${group.id === activeTerm ? 'border-[var(--accent)] bg-[var(--accent)] text-white' : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] hover:bg-[var(--accent-muted)]'}`}
                 id={`academic-term-tab-${group.id}`}
                 key={group.id}
                 onClick={() => selectAcademicTerm(group.id)}
@@ -343,7 +339,7 @@ export function PlannerClient({
         <section className="grid gap-3 md:grid-cols-2">
           {conflicts.map((conflict) => (
             <div
-              className={`rounded-2xl border p-4 text-sm ${conflict.kind === 'confirmed' ? 'border-red-800/20 bg-red-50 text-red-950' : 'border-amber-800/20 bg-amber-50 text-amber-950'}`}
+              className={`rounded-xl border p-4 text-sm ${conflict.kind === 'confirmed' ? 'border-red-800/20 bg-red-50 text-red-950' : 'border-amber-800/20 bg-amber-50 text-amber-950'}`}
               key={`${conflict.firstSectionId}:${conflict.secondSectionId}:${conflict.kind}:${conflict.message}`}
             >
               <strong className="capitalize">{conflict.kind} conflict</strong>
@@ -353,7 +349,7 @@ export function PlannerClient({
         </section>
       ) : null}
       {compatibilityWarnings.length > 0 ? (
-        <section className="rounded-2xl border border-sky-900/15 bg-sky-50 p-4 text-sm text-sky-950">
+        <section className="rounded-xl border border-sky-900/15 bg-sky-50 p-4 text-sm text-sky-950">
           <strong>Section compatibility needs review</strong>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {compatibilityWarnings.map((warning) => (
@@ -374,11 +370,11 @@ export function PlannerClient({
         <section className="grid gap-3 md:grid-cols-2">
           {visibleSections.map((section) => (
             <article
-              className="flex items-start justify-between gap-4 rounded-2xl border border-purple-950/15 bg-white/65 p-4"
+              className="flex items-start justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
               key={section.id}
             >
               <div>
-                <p className="font-black text-purple-900">
+                <p className="font-semibold text-[var(--accent)]">
                   {section.courseCode}
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
@@ -394,7 +390,7 @@ export function PlannerClient({
                 ) : null}
               </div>
               <button
-                className="text-sm font-bold text-red-800"
+                className="text-sm font-semibold text-[var(--danger)]"
                 onClick={() =>
                   store(sectionIds.filter((id) => id !== section.id))
                 }

@@ -85,7 +85,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-sm font-bold text-slate-500">{label}</dt>
-      <dd className="mt-1 text-2xl font-black text-purple">{value}</dd>
+      <dd className="mt-1 font-display text-2xl font-medium text-[var(--text-primary)]">
+        {value}
+      </dd>
     </div>
   )
 }

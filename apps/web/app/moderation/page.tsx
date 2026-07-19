@@ -13,11 +13,9 @@ export default async function ModerationPage() {
   if (!viewer) redirect('/sign-in')
   if (viewer.role === 'user') notFound()
   return (
-    <main className="page-shell py-10 sm:py-14">
+    <main className="page-shell py-9 sm:py-12">
       <span className="eyebrow">Moderator workspace</span>
-      <h1 className="page-title mt-4 !text-[clamp(2.5rem,7vw,4.5rem)]">
-        Resolve reports with context.
-      </h1>
+      <h1 className="page-title mt-4">Resolve reports with context.</h1>
       <p className="page-lead mt-4">
         Keep public reviews useful without exposing anonymous authors. Every
         resolution stores the moderator, notes, state, and timestamp.

@@ -52,20 +52,20 @@ export default async function RequirementsPage({
     )
   }
   return (
-    <main className="page-shell py-10 sm:py-14">
+    <main className="page-shell py-9 sm:py-12">
       <span className="eyebrow">Explainable planning check</span>
-      <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_18rem] lg:items-end">
+      <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
         <div>
-          <h1 className="page-title !text-[clamp(2.5rem,7vw,4.7rem)]">
+          <h1 className="page-title max-w-[46rem]">
             See what is clear—and what still needs confirmation.
           </h1>
-          <p className="page-lead mt-5">
+          <p className="page-lead mt-4 max-w-[39rem]">
             Compare completed and planned courses against source-linked
             programme rules. Unverified, ambiguous, or approval-dependent
             details stay uncertain.
           </p>
         </div>
-        <aside className="rounded-2xl border border-amber-900/15 bg-amber-50/80 p-4 text-sm leading-6 text-amber-950">
+        <aside className="status-banner status-warning lg:mt-1">
           Planning aid only. CUSIS and your Division remain authoritative for
           enrollment and graduation decisions.
         </aside>
@@ -79,8 +79,10 @@ export default async function RequirementsPage({
           signedIn={Boolean(viewer)}
         />
       ) : (
-        <section className="panel mt-10 p-6">
-          <h2 className="text-xl font-black">No requirement set is loaded.</h2>
+        <section className="panel mt-8 p-5 sm:p-6">
+          <h2 className="font-display text-xl font-medium">
+            No requirement set is loaded.
+          </h2>
           <p className="mt-2 text-sm text-slate-600">
             A maintainer must run the idempotent requirement seed after the
             database migration. No academic rule is inferred automatically.
