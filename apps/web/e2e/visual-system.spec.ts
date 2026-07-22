@@ -4,10 +4,13 @@ const publicRoutes = [
   '/',
   '/courses',
   '/planner',
-  '/requirements',
   '/sign-in',
   '/data-status',
   '/feedback',
+  '/privacy',
+  '/terms',
+  '/community-guidelines',
+  '/moderation-policy',
 ]
 
 test('uses self-hosted display and UI fonts without page-level overflow', async ({

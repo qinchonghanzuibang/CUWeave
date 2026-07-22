@@ -4,6 +4,7 @@ import type { CourseSection, SavedScheduleRecord } from '@cuweave/db'
 import {
   ACTIVE_TERM_STORAGE_KEY,
   deduplicatePlannerSections,
+  exportAcademicTermCalendar,
   findConflicts,
   groupSectionsByAcademicTerm,
   parseSchedule,
@@ -31,14 +32,22 @@ function asPlannerSection(section: LoadedSection): PlannerSection {
     academicYear: section.academicYear,
     termKey: section.termKey,
     termName: section.termName,
+    courseTitle: section.courseTitle ?? section.courseCode,
+    sourceName: section.sourceName ?? 'Unknown source',
+    sourceRevision: section.sourceRevision ?? 'Unknown revision',
+    importedAt: section.importedAt ?? '',
     meetings: section.meetings.map((meeting) => ({
       id: meeting.id,
       weekday: meeting.weekday,
       startMinutes: wallClockMinutes(meeting.startTime),
       endMinutes: wallClockMinutes(meeting.endTime),
-      teachingDates: parseTeachingDates(meeting.teachingDatesRaw),
+      teachingDates: parseTeachingDates(
+        meeting.teachingDatesRaw,
+        section.academicYear
+      ),
       rawTime: meeting.timeRaw,
       locationRaw: meeting.locationRaw,
+      instructorDisplayRaw: meeting.instructorDisplayRaw,
     })),
   }
 }
@@ -53,6 +62,7 @@ export function PlannerClient({
   const [sections, setSections] = useState<LoadedSection[]>([])
   const [unavailable, setUnavailable] = useState(false)
   const [cloudMessage, setCloudMessage] = useState('')
+  const [calendarMessage, setCalendarMessage] = useState('')
   const [cloudSchedules, setCloudSchedules] = useState(schedules)
   const stored = useSyncExternalStore(
     (notify) => {
@@ -231,6 +241,28 @@ export function PlannerClient({
     return warnings.sort()
   }, [plannerSections])
 
+  function downloadCurrentTermCalendar() {
+    if (!activeGroup) return
+    const result = exportAcademicTermCalendar(activeGroup)
+    setCalendarMessage(
+      [
+        result.eventCount
+          ? `${result.eventCount} dated meeting occurrence(s) exported for ${activeGroup.label}.`
+          : `No safely dated meetings were available for ${activeGroup.label}.`,
+        ...result.warnings,
+      ].join(' ')
+    )
+    if (result.eventCount === 0) return
+    const url = URL.createObjectURL(
+      new Blob([result.content], { type: 'text/calendar;charset=utf-8' })
+    )
+    const link = document.createElement('a')
+    link.href = url
+    link.download = result.filename
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="mt-7 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
@@ -293,6 +325,12 @@ export function PlannerClient({
         </p>
       ) : null}
 
+      {calendarMessage ? (
+        <p className="status-banner status-info" role="status">
+          {calendarMessage}
+        </p>
+      ) : null}
+
       {unavailable && sectionIds.length > 0 ? (
         <div className="status-banner status-warning p-4">
           Selected section IDs are safe, but course details are unavailable
@@ -312,21 +350,48 @@ export function PlannerClient({
 
       {termGroups.length > 0 ? (
         <section aria-label="Academic term" className="space-y-3">
-          <div className="flex flex-wrap gap-2" role="tablist">
-            {termGroups.map((group) => (
-              <button
-                aria-controls="weekly-timetable-panel"
-                aria-selected={group.id === activeTerm}
-                className={`rounded-lg border px-3.5 py-2 text-sm font-semibold ${group.id === activeTerm ? 'border-[var(--accent)] bg-[var(--accent)] text-white' : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] hover:bg-[var(--accent-muted)]'}`}
-                id={`academic-term-tab-${group.id}`}
-                key={group.id}
-                onClick={() => selectAcademicTerm(group.id)}
-                role="tab"
-                type="button"
-              >
-                {group.label} · {group.sections.length}
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-wrap gap-2" role="tablist">
+              {termGroups.map((group) => (
+                <button
+                  aria-controls="weekly-timetable-panel"
+                  aria-selected={group.id === activeTerm}
+                  className={`rounded-lg border px-3.5 py-2 text-sm font-semibold ${group.id === activeTerm ? 'border-[var(--accent)] bg-[var(--accent)] text-white' : 'border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] hover:bg-[var(--accent-muted)]'}`}
+                  id={`academic-term-tab-${group.id}`}
+                  key={group.id}
+                  onClick={() => selectAcademicTerm(group.id)}
+                  role="tab"
+                  type="button"
+                >
+                  {group.label} · {group.sections.length}
+                </button>
+              ))}
+            </div>
+            {activeGroup ? (
+              <details className="relative">
+                <summary className="button-secondary cursor-pointer list-none">
+                  Export calendar
+                </summary>
+                <div className="absolute right-0 z-30 mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-xl">
+                  <button
+                    className="account-menu-item w-full text-left"
+                    onClick={(event) => {
+                      downloadCurrentTermCalendar()
+                      event.currentTarget
+                        .closest('details')
+                        ?.removeAttribute('open')
+                    }}
+                    type="button"
+                  >
+                    Current term (.ics)
+                  </button>
+                </div>
+              </details>
+            ) : (
+              <button className="button-secondary" disabled type="button">
+                Export calendar
               </button>
-            ))}
+            )}
           </div>
           <p className="text-sm text-slate-600">
             Showing only <strong>{activeGroup?.label}</strong> meetings in this
@@ -362,6 +427,9 @@ export function PlannerClient({
       {visibleSections.length > 0 ? (
         <WeeklyTimetable
           label={activeGroup?.label ?? 'Active term'}
+          onRemove={(sectionId) =>
+            store(sectionIds.filter((id) => id !== sectionId))
+          }
           sections={visibleSections}
         />
       ) : null}

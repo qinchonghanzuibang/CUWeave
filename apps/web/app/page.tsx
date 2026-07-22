@@ -8,7 +8,7 @@ import { getViewer } from '../lib/session'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const metadata: Metadata = {
-  title: 'CUWeave · CUHK course planning, woven together',
+  title: { absolute: 'CUWeave · CUHK course planning, woven together' },
   description:
     'Explore pinned CUHK course data, plan schedules, and keep academic uncertainty visible.',
 }
@@ -83,7 +83,7 @@ export default async function Home() {
       <section className="grid items-center gap-8 py-8 lg:grid-cols-[1.35fr_0.65fr] lg:py-12">
         <div>
           <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-            CUWeave Public Beta
+            CUWeave course planning
           </p>
           <h1 className="hero-title">
             One calmer place to shape your CUHK term.

@@ -13,3 +13,10 @@ implements local JSON compatibility with the audited Another Planner data shape.
 No third-party license file is included because no portion of their software is copied or closely
 ported. Committed tests are independently synthetic. Real academic JSON may be imported from a
 separate local checkout for development but is not vendored or redistributed by this repository.
+
+## Development tooling
+
+CUWeave uses `ical.js` under the Mozilla Public License 2.0 in automated tests to parse and validate
+generated RFC 5545 calendar files. Its source and license are available from
+https://github.com/kewisch/ical.js. It is a development dependency and is not used to generate
+calendar data in the browser.

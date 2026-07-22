@@ -30,10 +30,14 @@ export interface CourseMeeting {
 export interface CourseSection {
   id: string
   courseCode?: string
+  courseTitle?: string
   label: string
   academicYear: string
   termKey: string
   termName: string
+  sourceName?: string
+  sourceRevision?: string
+  importedAt?: string
   meetings: CourseMeeting[]
 }
 
@@ -352,6 +356,10 @@ export async function getSectionsByIds(
           'academicYear', o.academic_year,
           'termKey', o.term_key,
           'termName', o.term_name_raw,
+          'courseTitle', v.title,
+          'sourceName', snap.source_name,
+          'sourceRevision', snap.upstream_revision,
+          'importedAt', snap.retrieved_at,
           'meetings', coalesce(jsonb_agg(jsonb_build_object(
             'id', m.id::text, 'ordinal', m.ordinal, 'timeRaw', m.time_raw,
             'timeStatus', m.time_status, 'weekday', m.weekday,
@@ -363,9 +371,12 @@ export async function getSectionsByIds(
       from section sec
       join course_offering o on o.id = sec.offering_id and o.valid_to_import_run_id is null
       join course c on c.id = o.course_id
+      join course_catalog_version v on v.id = o.catalog_version_id
+        and v.valid_to_import_run_id is null
+      join source_snapshot snap on snap.id = v.last_seen_snapshot_id
       left join meeting m on m.section_id = sec.id
       where sec.id = any($1::uuid[]) and sec.valid_to_import_run_id is null
-      group by sec.id, o.id, c.id
+      group by sec.id, o.id, c.id, v.id, snap.id
     `,
     [ids]
   )

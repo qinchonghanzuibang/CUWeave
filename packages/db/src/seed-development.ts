@@ -6,6 +6,8 @@ import {
 
 const STUDENT_ID = 'dev-student'
 const MODERATOR_ID = 'dev-moderator'
+const ADMIN_ID = 'dev-admin'
+const DEVELOPMENT_USER_IDS = [STUDENT_ID, MODERATOR_ID, ADMIN_ID]
 
 async function seed() {
   if (process.env.NODE_ENV === 'production')
@@ -18,44 +20,46 @@ async function seed() {
     await client.query(
       `delete from review_report
        where reporter_id = any($1::text[]) or moderator_id = any($1::text[])`,
-      [[STUDENT_ID, MODERATOR_ID]]
+      [DEVELOPMENT_USER_IDS]
     )
     await client.query(
       'delete from review_vote where user_id = any($1::text[])',
-      [[STUDENT_ID, MODERATOR_ID]]
+      [DEVELOPMENT_USER_IDS]
     )
     await client.query('delete from review where author_id = any($1::text[])', [
-      [STUDENT_ID, MODERATOR_ID],
+      DEVELOPMENT_USER_IDS,
     ])
     await client.query(
       'delete from course_favorite where user_id = any($1::text[])',
-      [[STUDENT_ID, MODERATOR_ID]]
+      [DEVELOPMENT_USER_IDS]
     )
     await client.query(
       'delete from saved_schedule where user_id = any($1::text[])',
-      [[STUDENT_ID, MODERATOR_ID]]
+      [DEVELOPMENT_USER_IDS]
     )
     await client.query(
       'delete from auth_session where user_id = any($1::text[])',
-      [[STUDENT_ID, MODERATOR_ID]]
+      [DEVELOPMENT_USER_IDS]
     )
     await client.query(
       'delete from auth_account where user_id = any($1::text[])',
-      [[STUDENT_ID, MODERATOR_ID]]
+      [DEVELOPMENT_USER_IDS]
     )
     await client.query(
       `delete from auth_verification
-       where identifier in ('student@cuweave.local', 'moderator@cuweave.local')`
+       where identifier in ('student@cuweave.local', 'moderator@cuweave.local',
+         'admin@cuweave.local')`
     )
     await client.query(
       `insert into app_user
       (id,name,email,email_verified,role,status,verified_cuhk_email)
      values
       ($1,'Development Student','student@cuweave.local',true,'user','active',false),
-      ($2,'Development Moderator','moderator@cuweave.local',true,'moderator','active',false)
+      ($2,'Development Moderator','moderator@cuweave.local',true,'moderator','active',false),
+      ($3,'Development Administrator','admin@cuweave.local',true,'admin','active',false)
      on conflict (id) do update set name=excluded.name,email=excluded.email,
        role=excluded.role,status='active',updated_at=now()`,
-      [STUDENT_ID, MODERATOR_ID]
+      [STUDENT_ID, MODERATOR_ID, ADMIN_ID]
     )
     await client.query('commit')
   } catch (error) {
@@ -93,9 +97,7 @@ async function seed() {
     [STUDENT_ID]
   )
   if (!schedules.rowCount)
-    await createSavedSchedule(STUDENT_ID, 'Public beta sample', [
-      item.section_id,
-    ])
+    await createSavedSchedule(STUDENT_ID, 'Public sample', [item.section_id])
   const reviews = await pool.query(
     'select 1 from review where author_id=$1 and offering_id=$2 and deleted_at is null',
     [MODERATOR_ID, item.offering_id]
@@ -108,7 +110,7 @@ async function seed() {
       recommendation: true,
       attendanceRequirement: 'unknown',
       assessmentSummary: 'Synthetic development assessment context.',
-      body: 'Synthetic review for exercising Public Beta ratings and moderation without using real student content.',
+      body: 'Synthetic review for exercising public ratings and moderation without using real student content.',
       ratings: {
         overall: 4,
         teaching: 4,
@@ -121,6 +123,7 @@ async function seed() {
   process.stdout.write(
     JSON.stringify({
       moderator: 'moderator@cuweave.local',
+      administrator: 'admin@cuweave.local',
       student: 'student@cuweave.local',
     }) + '\n'
   )

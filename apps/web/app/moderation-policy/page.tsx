@@ -1,3 +1,10 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Review and Moderation Policy',
+  description: 'How CUWeave handles reviews, reports, and moderation.',
+}
+
 export default function ModerationPolicyPage() {
   return (
     <main className="page-shell py-12 sm:py-16">

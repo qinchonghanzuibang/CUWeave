@@ -4,7 +4,7 @@ Status: accepted
 
 ## Context
 
-Public Beta needs email sign-in, secure server sessions, logout, and a future verification path.
+The public application needs email sign-in, secure server sessions, logout, and a future verification path.
 CUWeave must not implement authentication tokens, cookie signing, or session expiry itself.
 
 ## Decision

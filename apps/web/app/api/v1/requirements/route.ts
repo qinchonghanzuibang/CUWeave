@@ -3,11 +3,23 @@ import type { RequirementCourse } from '@cuweave/requirements'
 import { NextResponse } from 'next/server'
 
 import { apiError } from '../../../../lib/api-response'
+import { requirementsEnabled } from '../../../../lib/features'
 import { requireViewer } from '../../../../lib/session'
 
 export const dynamic = 'force-dynamic'
 
+export function GET() {
+  if (!requirementsEnabled())
+    return NextResponse.json({ error: 'Not found.' }, { status: 404 })
+  return NextResponse.json(
+    { error: 'Method not allowed.' },
+    { status: 405, headers: { Allow: 'POST' } }
+  )
+}
+
 export async function POST(request: Request) {
+  if (!requirementsEnabled())
+    return NextResponse.json({ error: 'Not found.' }, { status: 404 })
   try {
     const viewer = await requireViewer(request.headers)
     const body = (await request.json()) as {

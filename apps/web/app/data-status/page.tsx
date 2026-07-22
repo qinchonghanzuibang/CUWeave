@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const metadata: Metadata = {
-  title: 'Data status · CUWeave',
+  title: 'Data status',
   description: 'Coverage and provenance for the CUWeave academic catalog.',
 }
 

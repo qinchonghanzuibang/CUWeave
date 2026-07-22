@@ -6,7 +6,7 @@ import { PlannerClient } from './planner-client'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: 'Local planner · CUWeave',
+  title: 'Local planner',
   description:
     'Compare course sections locally while preserving uncertain teaching dates.',
 }

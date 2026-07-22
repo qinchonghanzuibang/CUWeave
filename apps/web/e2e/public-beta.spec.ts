@@ -12,6 +12,7 @@ async function developmentSignIn(page: Page, email: string) {
 test('rejects an invalid OTP without revealing account state', async ({
   page,
 }) => {
+  await page.setExtraHTTPHeaders({ 'x-forwarded-for': '192.0.2.23' })
   await page.goto('/sign-in')
   await page.getByLabel('CUHK student email').fill('invalid-code@cuweave.local')
   await page.getByRole('button', { name: 'Send verification code' }).click()
@@ -32,6 +33,8 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
     'The existing planner flow covers narrow UI.'
   )
 
+  await page.setExtraHTTPHeaders({ 'x-forwarded-for': '192.0.2.24' })
+
   await developmentSignIn(page, 'student@cuweave.local')
   await expect(
     page.getByRole('heading', { name: /Welcome, Development Student/ })
@@ -51,9 +54,7 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
   }
   await page
     .getByLabel('Written review')
-    .fill(
-      'Synthetic Playwright review for the integrated Public Beta experience.'
-    )
+    .fill('Synthetic Playwright review for the integrated public experience.')
   await page
     .getByLabel('Assessment summary')
     .fill('Synthetic project and quiz context.')
@@ -62,7 +63,7 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
 
   const targetReview = page.locator('article', {
     hasText:
-      'Synthetic review for exercising Public Beta ratings and moderation without using real student content.',
+      'Synthetic review for exercising public ratings and moderation without using real student content.',
   })
   await targetReview.getByRole('button', { name: /Helpful/ }).click()
   await expect(
@@ -96,7 +97,8 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
   await page.getByRole('button', { name: 'Revoke share' }).first().click()
   await expect(page.getByRole('status')).toContainText('Share link revoked.')
 
-  await page.getByRole('button', { name: 'Sign out' }).click()
+  await page.getByRole('button', { name: 'Account' }).click()
+  await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.waitForURL('/')
   await developmentSignIn(page, 'moderator@cuweave.local')
   await page.goto('/moderation')

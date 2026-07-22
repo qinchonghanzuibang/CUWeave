@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Feedback · CUWeave',
+  title: 'Feedback',
   description:
     'Report a bug, suggest a feature, request a data correction, or contact moderation.',
 }

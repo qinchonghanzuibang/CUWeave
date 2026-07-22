@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 import { getViewer } from '../../lib/session'
@@ -5,6 +6,10 @@ import { isAuthenticationAvailable } from '../../lib/auth-policy'
 import { SignInForm } from './sign-in-form'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = {
+  title: 'Sign in',
+  description: 'Sign in to CUWeave with an eligible CUHK email address.',
+}
 
 export default async function SignInPage() {
   if (await getViewer()) redirect('/profile')

@@ -1,3 +1,10 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Community Guidelines',
+  description: 'Standards for useful and respectful CUWeave contributions.',
+}
+
 export default function CommunityGuidelinesPage() {
   return (
     <main className="page-shell py-12 sm:py-16">

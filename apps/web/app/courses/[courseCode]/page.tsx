@@ -11,14 +11,35 @@ import { notFound } from 'next/navigation'
 import { AddSectionButton } from './add-section-button'
 import { FavoriteButton } from './favorite-button'
 import { ReviewHub } from './review-hub'
+import { requirementsEnabled } from '../../../lib/features'
 import { getViewer } from '../../../lib/session'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
-export const metadata: Metadata = {
-  title: 'Course details · CUWeave',
-  description:
-    'Inspect course sections, meetings, provenance, and community context. Verify all details in CUSIS.',
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ courseCode: string }>
+}): Promise<Metadata> {
+  const { courseCode } = await params
+  try {
+    const course = await getCourseDetail(courseCode)
+    if (!course) return { title: 'Course not found', robots: { index: false } }
+    return {
+      title: `${course.code} — ${course.title}`,
+      description: `Inspect ${course.code} sections, meetings, provenance, and community context. Verify all details in CUSIS.`,
+      alternates: { canonical: `/courses/${course.code}` },
+      openGraph: {
+        title: `${course.code} — ${course.title}`,
+        description: `${course.academicYear} course information and timetable planning context from CUWeave.`,
+        type: 'website',
+        url: `/courses/${course.code}`,
+      },
+    }
+  } catch {
+    return { title: 'Course details', robots: { index: false } }
+  }
 }
 
 export default async function CourseDetailPage({
@@ -160,13 +181,17 @@ export default async function CourseDetailPage({
         signedIn={Boolean(viewer)}
       />
       <aside className="mt-8 rounded-2xl border border-amber-900/15 bg-amber-50/70 p-5 text-sm leading-6 text-amber-950">
-        A course cannot be assumed to satisfy a contextual programme rule from
-        its code alone. Add it to the{' '}
-        <Link className="font-bold underline" href="/requirements">
-          requirement checker
-        </Link>{' '}
-        to see the applicable source-backed result and any uncertainty. Always
-        verify final enrollment details in CUSIS. See something stale or
+        {requirementsEnabled() ? (
+          <>
+            A course cannot be assumed to satisfy a contextual programme rule
+            from its code alone. Use the{' '}
+            <Link className="font-bold underline" href="/requirements">
+              requirement checker
+            </Link>{' '}
+            to review source-backed results and uncertainty.{' '}
+          </>
+        ) : null}
+        Always verify final enrollment details in CUSIS. See something stale or
         incorrect?{' '}
         <Link
           className="font-bold underline"

@@ -1,8 +1,10 @@
+import ICAL from 'ical.js'
 import { describe, expect, it } from 'vitest'
 
 import {
   academicTermIdentity,
   deduplicatePlannerSections,
+  exportAcademicTermCalendar,
   findConflicts,
   groupSectionsByAcademicTerm,
   intervalsOverlap,
@@ -10,6 +12,7 @@ import {
   meetingVerticalLayout,
   minutesToTimetableOffset,
   parseSchedule,
+  parseTeachingDates,
   resolveActiveAcademicTerm,
   sectionCompatibility,
   serializeSchedule,
@@ -25,6 +28,10 @@ const section = (overrides: Partial<PlannerSection> = {}): PlannerSection => ({
   academicYear: '2026-27',
   termKey: 'term-1',
   termName: '2026-27 Term 1',
+  courseTitle: 'Synthetic Systems',
+  sourceName: 'synthetic-source',
+  sourceRevision: 'synthetic-revision',
+  importedAt: '2026-07-20T00:00:00.000Z',
   meetings: [
     {
       id: 'meeting-one',
@@ -34,9 +41,165 @@ const section = (overrides: Partial<PlannerSection> = {}): PlannerSection => ({
       teachingDates: { kind: 'unknown', raw: '1/9, 8/9' },
       rawTime: 'Mo 9:30AM - 11:15AM',
       locationRaw: 'Engineering Building 801',
+      instructorDisplayRaw: 'Dr Synthetic',
     },
   ],
   ...overrides,
+})
+
+describe('teaching-date normalization', () => {
+  it('parses ranges and academic-year anchored exact dates', () => {
+    expect(parseTeachingDates('08/09/2026 - 01/12/2026')).toEqual({
+      kind: 'known',
+      dates: [],
+      ranges: [{ start: '2026-09-08', end: '2026-12-01' }],
+    })
+    expect(parseTeachingDates('8/9, 15/9, 12/1', '2026-27')).toEqual({
+      kind: 'known',
+      dates: ['2026-09-08', '2026-09-15', '2027-01-12'],
+      ranges: [],
+    })
+    expect(parseTeachingDates('TBA', '2026-27')).toEqual({
+      kind: 'unknown',
+      raw: 'TBA',
+    })
+  })
+
+  it('merges split date rows while deduplicating the weekly display card', () => {
+    const normalized = deduplicatePlannerSections([
+      section({
+        meetings: [
+          {
+            ...section().meetings[0]!,
+            teachingDates: parseTeachingDates('07/09/2026 - 28/09/2026'),
+          },
+          {
+            ...section().meetings[0]!,
+            id: 'split-row',
+            teachingDates: parseTeachingDates('12/10/2026 - 30/11/2026'),
+          },
+        ],
+      }),
+    ])
+    expect(normalized[0]?.meetings).toHaveLength(1)
+    expect(normalized[0]?.meetings[0]?.teachingDates).toEqual({
+      kind: 'known',
+      dates: [],
+      ranges: [
+        { start: '2026-09-07', end: '2026-09-28' },
+        { start: '2026-10-12', end: '2026-11-30' },
+      ],
+    })
+  })
+})
+
+describe('RFC 5545 calendar export', () => {
+  const termOne = {
+    id: '2026-27:term-1',
+    label: '2026-27 Term 1',
+    sections: [
+      section({
+        courseCode: 'TEST1001',
+        courseTitle: 'Systems, Safety; and \\ Reliability',
+        label: 'A-LEC (1234)',
+        meetings: [
+          {
+            id: 'wednesday',
+            weekday: 3,
+            startMinutes: 13 * 60 + 30,
+            endMinutes: 15 * 60 + 15,
+            teachingDates: parseTeachingDates('02/09/2026 - 16/09/2026'),
+            rawTime: 'We 1:30PM - 3:15PM',
+            locationRaw: 'Room 1, Main; Building',
+            instructorDisplayRaw: 'Dr Example',
+          },
+          {
+            id: 'wednesday-duplicate-source-row',
+            weekday: 3,
+            startMinutes: 13 * 60 + 30,
+            endMinutes: 15 * 60 + 15,
+            teachingDates: parseTeachingDates('02/09/2026 - 16/09/2026'),
+            rawTime: 'We 1:30PM - 3:15PM',
+            locationRaw: 'Room 1, Main; Building',
+            instructorDisplayRaw: 'Dr Example',
+          },
+          {
+            id: 'unknown',
+            weekday: 4,
+            startMinutes: 12 * 60 + 30,
+            endMinutes: 13 * 60 + 15,
+            teachingDates: { kind: 'unknown', raw: 'TBA' },
+            rawTime: 'Th 12:30PM - 1:15PM',
+            locationRaw: 'TBA',
+            instructorDisplayRaw: 'Staff',
+          },
+        ],
+      }),
+    ],
+  }
+
+  it('exports only safe current-term occurrences with Hong Kong wall time', () => {
+    const result = exportAcademicTermCalendar(
+      termOne,
+      new Date('2026-07-20T00:00:00.000Z')
+    )
+    const unfolded = result.content.replace(/\r\n[ \t]/g, '')
+    expect(result.filename).toBe('CUWeave-2026-27-Term-1.ics')
+    expect(result.eventCount).toBe(3)
+    expect(result.omittedMeetingCount).toBe(1)
+    expect(result.warnings).toEqual([
+      '1 meeting pattern(s) omitted: unknown teaching dates.',
+    ])
+    expect(result.content).toContain('BEGIN:VCALENDAR\r\nVERSION:2.0')
+    expect(result.content).toContain('PRODID:-//CUWeave//Course Planner//EN')
+    expect(result.content).toContain('TZID:Asia/Hong_Kong')
+    expect(result.content).toContain(
+      'DTSTART;TZID=Asia/Hong_Kong:20260902T133000'
+    )
+    expect(result.content).not.toContain('Term 2')
+    expect(unfolded).toContain('Planning only — verify in CUSIS.')
+    expect(result.content).toContain('LOCATION:Room 1\\, Main\\; Building')
+    expect(result.content).toMatch(/UID:[0-9a-f]{16}@cuweave\.org/)
+    expect(result.content).not.toContain('wednesday')
+    expect(
+      result.content
+        .split('\r\n')
+        .every((line) => new TextEncoder().encode(line).length <= 75)
+    ).toBe(true)
+    expect(result.content.endsWith('\r\n')).toBe(true)
+    const parsedData = ICAL.parse(result.content) as unknown
+    if (!Array.isArray(parsedData))
+      throw new Error('Expected parsed jCal data.')
+    const parsed = new ICAL.Component(parsedData as unknown[])
+    const events = parsed.getAllSubcomponents('vevent')
+    expect(events).toHaveLength(3)
+    const firstEvent = new ICAL.Event(events[0])
+    expect(firstEvent.startDate.zone.tzid).toBe('Asia/Hong_Kong')
+    expect(firstEvent.startDate.toString()).toBe('2026-09-02T13:30:00')
+  })
+
+  it('keeps Thursday 12:30 invariant without using the process timezone', () => {
+    const result = exportAcademicTermCalendar({
+      id: '2026-27:term-1',
+      label: '2026-27 Term 1',
+      sections: [
+        section({
+          meetings: [
+            {
+              ...section().meetings[0]!,
+              weekday: 4,
+              startMinutes: 12 * 60 + 30,
+              endMinutes: 13 * 60 + 15,
+              teachingDates: parseTeachingDates('03/09/2026 - 03/09/2026'),
+            },
+          ],
+        }),
+      ],
+    })
+    expect(result.content).toContain(
+      'DTSTART;TZID=Asia/Hong_Kong:20260903T123000'
+    )
+  })
 })
 
 describe('planner conflicts', () => {
@@ -57,8 +220,8 @@ describe('planner conflicts', () => {
               ...section().meetings[0]!,
               teachingDates: {
                 kind: 'known',
-                start: '2026-09-01',
-                end: '2026-09-30',
+                dates: [],
+                ranges: [{ start: '2026-09-01', end: '2026-09-30' }],
               },
             },
           ],
@@ -71,8 +234,8 @@ describe('planner conflicts', () => {
               id: 'two-meeting',
               teachingDates: {
                 kind: 'known',
-                start: '2026-09-15',
-                end: '2026-10-01',
+                dates: [],
+                ranges: [{ start: '2026-09-15', end: '2026-10-01' }],
               },
             },
           ],
@@ -96,8 +259,8 @@ describe('planner conflicts', () => {
               ...section().meetings[0]!,
               teachingDates: {
                 kind: 'known',
-                start: '2026-09-01',
-                end: '2026-09-02',
+                dates: [],
+                ranges: [{ start: '2026-09-01', end: '2026-09-02' }],
               },
             },
           ],
@@ -109,8 +272,8 @@ describe('planner conflicts', () => {
               ...section().meetings[0]!,
               teachingDates: {
                 kind: 'known',
-                start: '2026-10-01',
-                end: '2026-10-02',
+                dates: [],
+                ranges: [{ start: '2026-10-01', end: '2026-10-02' }],
               },
             },
           ],

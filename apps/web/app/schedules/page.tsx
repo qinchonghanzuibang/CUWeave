@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
+import { requirementsEnabled } from '../../lib/features'
 import { getViewer } from '../../lib/session'
 import { ScheduleLibrary } from './schedule-library'
 
@@ -21,13 +22,15 @@ export default async function SchedulesPage() {
         issue revocable read-only links.
       </p>
       <ScheduleLibrary initial={await listSavedSchedules(viewer.id)} />
-      <aside className="status-banner status-info mt-7 p-4">
-        Courses in your saved schedules can be included in the{' '}
-        <Link className="text-link" href="/requirements">
-          requirement checker
-        </Link>
-        . Inclusion does not imply that a Division has approved the course.
-      </aside>
+      {requirementsEnabled() ? (
+        <aside className="status-banner status-info mt-7 p-4">
+          Courses in your saved schedules can be included in the{' '}
+          <Link className="text-link" href="/requirements">
+            requirement checker
+          </Link>
+          . Inclusion does not imply that a Division has approved the course.
+        </aside>
+      ) : null}
     </main>
   )
 }

@@ -1,5 +1,10 @@
+export interface TeachingDateRange {
+  start: string
+  end: string
+}
+
 export type TeachingDates =
-  | { kind: 'known'; start: string; end: string }
+  | { kind: 'known'; dates: string[]; ranges: TeachingDateRange[] }
   | { kind: 'unknown'; raw: string }
 
 export interface PlannerMeeting {
@@ -10,6 +15,7 @@ export interface PlannerMeeting {
   teachingDates: TeachingDates
   rawTime: string
   locationRaw: string
+  instructorDisplayRaw: string
 }
 
 export interface PlannerSection {
@@ -19,6 +25,10 @@ export interface PlannerSection {
   academicYear: string
   termKey: string
   termName: string
+  courseTitle: string
+  sourceName: string
+  sourceRevision: string
+  importedAt: string
   meetings: PlannerMeeting[]
 }
 
@@ -193,20 +203,28 @@ export function deduplicatePlannerSections(
   sections: PlannerSection[]
 ): PlannerSection[] {
   const sectionMap = new Map<string, PlannerSection>()
-  const meetingKeys = new Map<string, Set<string>>()
+  const meetingKeys = new Map<string, Map<string, number>>()
   for (const section of sections) {
     let normalized = sectionMap.get(section.id)
     if (!normalized) {
       normalized = { ...section, meetings: [] }
       sectionMap.set(section.id, normalized)
-      meetingKeys.set(section.id, new Set())
+      meetingKeys.set(section.id, new Map())
     }
     const seen = meetingKeys.get(section.id)!
     for (const meeting of section.meetings) {
       const key = weeklyMeetingDisplayIdentity(meeting)
-      if (seen.has(key)) continue
-      seen.add(key)
-      normalized.meetings.push(meeting)
+      const existingIndex = seen.get(key)
+      if (existingIndex !== undefined) {
+        const existing = normalized.meetings[existingIndex]!
+        existing.teachingDates = mergeTeachingDates(
+          existing.teachingDates,
+          meeting.teachingDates
+        )
+        continue
+      }
+      seen.set(key, normalized.meetings.length)
+      normalized.meetings.push({ ...meeting })
     }
   }
   return [...sectionMap.values()].sort((first, second) =>
@@ -266,12 +284,16 @@ export function intervalsOverlap(
   return firstStart < secondEnd && secondStart < firstEnd
 }
 
-function dateRangesOverlap(
+function teachingDatesOverlap(
   first: TeachingDates,
-  second: TeachingDates
+  second: TeachingDates,
+  weekday: number
 ): boolean | null {
   if (first.kind === 'unknown' || second.kind === 'unknown') return null
-  return first.start <= second.end && second.start <= first.end
+  const firstDates = new Set(teachingOccurrenceDates(first, weekday))
+  return teachingOccurrenceDates(second, weekday).some((date) =>
+    firstDates.has(date)
+  )
 }
 
 export function findConflicts(sections: PlannerSection[]): ConflictResult[] {
@@ -323,9 +345,10 @@ export function findConflicts(sections: PlannerSection[]): ConflictResult[] {
             )
           )
             continue
-          const dateOverlap = dateRangesOverlap(
+          const dateOverlap = teachingDatesOverlap(
             firstMeeting.teachingDates,
-            secondMeeting.teachingDates
+            secondMeeting.teachingDates,
+            firstMeeting.weekday
           )
           if (dateOverlap === false) continue
           conflicts.push({
@@ -396,12 +419,287 @@ export function parseSchedule(raw: string | null): StoredScheduleV1 {
   return { version: 1, sectionIds: [] }
 }
 
-export function parseTeachingDates(raw: string): TeachingDates {
+export function parseTeachingDates(
+  raw: string,
+  academicYear?: string
+): TeachingDates {
   const match = /^(\d{2})\/(\d{2})\/(\d{4}) - (\d{2})\/(\d{2})\/(\d{4})$/.exec(
     raw
   )
-  if (!match) return { kind: 'unknown', raw }
-  const start = `${match[3]}-${match[2]}-${match[1]}`
-  const end = `${match[6]}-${match[5]}-${match[4]}`
-  return start <= end ? { kind: 'known', start, end } : { kind: 'unknown', raw }
+  if (match) {
+    const start = `${match[3]}-${match[2]}-${match[1]}`
+    const end = `${match[6]}-${match[5]}-${match[4]}`
+    return start <= end && isIsoDate(start) && isIsoDate(end)
+      ? { kind: 'known', dates: [], ranges: [{ start, end }] }
+      : { kind: 'unknown', raw }
+  }
+
+  const startYear = academicYearStart(academicYear)
+  const parts = raw.split(',').map((part) => part.trim())
+  if (
+    startYear !== null &&
+    parts.length > 0 &&
+    parts.every((part) => /^\d{1,2}\/\d{1,2}$/.test(part))
+  ) {
+    const dates = parts.map((part) => {
+      const [dayText = '', monthText = ''] = part.split('/')
+      const day = Number(dayText)
+      const month = Number(monthText)
+      const year = month >= 8 ? startYear : startYear + 1
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    })
+    if (dates.every(isIsoDate))
+      return {
+        kind: 'known',
+        dates: [...new Set(dates)].sort(),
+        ranges: [],
+      }
+  }
+  return { kind: 'unknown', raw }
+}
+
+function academicYearStart(value?: string): number | null {
+  const match = /^(\d{4})-(?:\d{2}|\d{4})$/.exec(value ?? '')
+  return match ? Number(match[1]) : null
+}
+
+function isIsoDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return false
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const date = new Date(Date.UTC(year, month - 1, day))
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  )
+}
+
+export function mergeTeachingDates(
+  first: TeachingDates,
+  second: TeachingDates
+): TeachingDates {
+  if (first.kind === 'unknown') return second
+  if (second.kind === 'unknown') return first
+  const ranges = new Map<string, TeachingDateRange>()
+  for (const range of [...first.ranges, ...second.ranges])
+    ranges.set(`${range.start}:${range.end}`, range)
+  return {
+    kind: 'known',
+    dates: [...new Set([...first.dates, ...second.dates])].sort(),
+    ranges: [...ranges.values()].sort((a, b) =>
+      `${a.start}:${a.end}`.localeCompare(`${b.start}:${b.end}`)
+    ),
+  }
+}
+
+function addUtcDays(value: string, amount: number): string {
+  const [year = 0, month = 0, day = 0] = value.split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, day + amount))
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`
+}
+
+function isoWeekday(value: string): number {
+  const [year = 0, month = 0, day = 0] = value.split('-').map(Number)
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay()
+  return weekday === 0 ? 7 : weekday
+}
+
+export function teachingOccurrenceDates(
+  teachingDates: TeachingDates,
+  weekday: number
+): string[] {
+  if (teachingDates.kind === 'unknown' || weekday < 1 || weekday > 7) return []
+  const occurrences = new Set(
+    teachingDates.dates.filter((date) => isoWeekday(date) === weekday)
+  )
+  for (const range of teachingDates.ranges) {
+    let date = range.start
+    let guard = 0
+    while (date <= range.end && guard < 370) {
+      if (isoWeekday(date) === weekday) occurrences.add(date)
+      date = addUtcDays(date, 1)
+      guard += 1
+    }
+  }
+  return [...occurrences].sort()
+}
+
+export function formatTeachingDates(teachingDates: TeachingDates): string {
+  if (teachingDates.kind === 'unknown')
+    return teachingDates.raw || 'Unknown teaching dates'
+  return [
+    ...teachingDates.dates,
+    ...teachingDates.ranges.map((range) => `${range.start} – ${range.end}`),
+  ].join(', ')
+}
+
+export interface CalendarExportResult {
+  content: string
+  eventCount: number
+  filename: string
+  omittedMeetingCount: number
+  warnings: string[]
+}
+
+function escapeIcs(value: string): string {
+  return value
+    .replaceAll('\r\n', '\n')
+    .replaceAll('\r', '\n')
+    .replaceAll('\\', '\\\\')
+    .replaceAll('\n', '\\n')
+    .replaceAll(',', '\\,')
+    .replaceAll(';', '\\;')
+}
+
+function foldIcsLine(line: string): string[] {
+  const encoder = new TextEncoder()
+  const folded: string[] = []
+  let current = ''
+  let limit = 75
+  for (const character of Array.from(line)) {
+    if (encoder.encode(current + character).length > limit) {
+      folded.push(current)
+      current = ` ${character}`
+      limit = 75
+    } else current += character
+  }
+  folded.push(current)
+  return folded
+}
+
+function calendarTimestamp(value: Date): string {
+  return value
+    .toISOString()
+    .replaceAll('-', '')
+    .replaceAll(':', '')
+    .replace(/\.\d{3}Z$/, 'Z')
+}
+
+function calendarLocalDateTime(date: string, minutes: number): string {
+  return `${date.replaceAll('-', '')}T${String(Math.floor(minutes / 60)).padStart(2, '0')}${String(minutes % 60).padStart(2, '0')}00`
+}
+
+function stableHash(value: string): string {
+  let first = 0x811c9dc5
+  let second = 0x811c9dc5
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index)
+    first = Math.imul(first ^ code, 0x01000193)
+    second = Math.imul(second ^ (code + index), 0x01000193)
+  }
+  return `${(first >>> 0).toString(16).padStart(8, '0')}${(second >>> 0).toString(16).padStart(8, '0')}`
+}
+
+function componentLabel(sectionLabel: string): string {
+  return /-([A-Z]{2,5})\b/.exec(sectionLabel)?.[1] ?? sectionLabel
+}
+
+function classNumber(sectionLabel: string): string {
+  return /\(([^)]+)\)\s*$/.exec(sectionLabel)?.[1] ?? 'Not provided'
+}
+
+export function exportAcademicTermCalendar(
+  group: AcademicTermGroup,
+  generatedAt = new Date()
+): CalendarExportResult {
+  const omittedReasons = new Map<string, number>()
+  const eventLines = new Map<string, string[]>()
+  const omit = (reason: string) =>
+    omittedReasons.set(reason, (omittedReasons.get(reason) ?? 0) + 1)
+
+  for (const section of deduplicatePlannerSections(group.sections)) {
+    for (const meeting of section.meetings) {
+      if (meeting.weekday === null) {
+        omit('unknown weekday')
+        continue
+      }
+      if (meeting.startMinutes === null || meeting.endMinutes === null) {
+        omit('unknown or malformed time')
+        continue
+      }
+      if (meeting.teachingDates.kind === 'unknown') {
+        omit('unknown teaching dates')
+        continue
+      }
+      const dates = teachingOccurrenceDates(
+        meeting.teachingDates,
+        meeting.weekday
+      )
+      if (dates.length === 0) {
+        omit('no dated occurrence matched the meeting weekday')
+        continue
+      }
+      for (const date of dates) {
+        const occurrenceKey = [
+          section.courseCode,
+          section.label,
+          date,
+          meeting.startMinutes,
+          meeting.endMinutes,
+          meeting.locationRaw.trim(),
+        ].join('|')
+        if (eventLines.has(occurrenceKey)) continue
+        const description = [
+          section.courseTitle,
+          `Section: ${section.label}`,
+          `Class number: ${classNumber(section.label)}`,
+          `Instructor: ${meeting.instructorDisplayRaw || 'Not provided'}`,
+          `Term: ${group.label}`,
+          'Planning only — verify in CUSIS.',
+        ].join('\n')
+        eventLines.set(occurrenceKey, [
+          'BEGIN:VEVENT',
+          `UID:${stableHash(occurrenceKey)}@cuweave.org`,
+          `DTSTAMP:${calendarTimestamp(generatedAt)}`,
+          `DTSTART;TZID=Asia/Hong_Kong:${calendarLocalDateTime(date, meeting.startMinutes)}`,
+          `DTEND;TZID=Asia/Hong_Kong:${calendarLocalDateTime(date, meeting.endMinutes)}`,
+          `SUMMARY:${escapeIcs(`${section.courseCode} ${componentLabel(section.label)}`)}`,
+          `LOCATION:${escapeIcs(meeting.locationRaw)}`,
+          `DESCRIPTION:${escapeIcs(description)}`,
+          'END:VEVENT',
+        ])
+      }
+    }
+  }
+
+  const calendarName = `CUWeave ${group.label}`
+  const logicalLines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//CUWeave//Course Planner//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${escapeIcs(calendarName)}`,
+    'X-WR-TIMEZONE:Asia/Hong_Kong',
+    'BEGIN:VTIMEZONE',
+    'TZID:Asia/Hong_Kong',
+    'X-LIC-LOCATION:Asia/Hong_Kong',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0800',
+    'TZOFFSETTO:+0800',
+    'TZNAME:HKT',
+    'DTSTART:19700101T000000',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    ...[...eventLines.entries()]
+      .sort(([first], [second]) => first.localeCompare(second))
+      .flatMap(([, lines]) => lines),
+    'END:VCALENDAR',
+  ]
+  const warnings = [...omittedReasons.entries()]
+    .sort(([first], [second]) => first.localeCompare(second))
+    .map(([reason, count]) => `${count} meeting pattern(s) omitted: ${reason}.`)
+  return {
+    content: `${logicalLines.flatMap(foldIcsLine).join('\r\n')}\r\n`,
+    eventCount: eventLines.size,
+    filename: `${calendarName.replaceAll(' ', '-')}.ics`,
+    omittedMeetingCount: [...omittedReasons.values()].reduce(
+      (total, count) => total + count,
+      0
+    ),
+    warnings,
+  }
 }

@@ -16,7 +16,7 @@ Create the Vercel project from the repository with these exact settings:
 
 ## Environment variables
 
-Server-only in Preview/Production: `DATABASE_URL`, optional `DATABASE_MIGRATION_URL`, `DATABASE_SSL=true`, `DATABASE_POOL_MAX`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `AUTH_TRUSTED_ORIGINS`, `AUTH_SMTP_URL`, `AUTH_EMAIL_FROM`, optional `AUTH_OPERATOR_EMAILS`, `RATE_LIMIT_HASH_SECRET`, `TRUST_PROXY_HEADERS=true` only on the trusted platform, and `GITHUB_REPOSITORY_URL`. Never use `NEXT_PUBLIC_` for these values.
+Server-only in Preview/Production: `DATABASE_URL`, optional `DATABASE_MIGRATION_URL`, `DATABASE_SSL=true`, `DATABASE_POOL_MAX`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `AUTH_TRUSTED_ORIGINS`, `AUTH_SMTP_URL`, `AUTH_EMAIL_FROM`, optional `AUTH_OPERATOR_EMAILS`, `RATE_LIMIT_HASH_SECRET`, `TRUST_PROXY_HEADERS=true` only on the trusted platform, `FEATURE_REQUIREMENTS_ENABLED=false`, and `GITHUB_REPOSITORY_URL`. Never use `NEXT_PUBLIC_` for these values.
 
 `AUTH_OPERATOR_EMAILS` is a comma-separated list of exact normalized addresses for exceptional operator login. It is server-only, does not accept wildcards or domain-wide entries, and grants no role; use `role:grant` separately after the account exists.
 
@@ -31,7 +31,7 @@ Preview authentication is disabled by default (`AUTH_PREVIEW_MODE=disabled`). Th
 DATABASE_URL="$APP_POOL_URL" DATABASE_MIGRATION_URL="$DIRECT_URL" \
   DATABASE_SSL=true pnpm db:migrate
 
-# Seed the reviewed draft requirement metadata.
+# Seed draft requirement metadata only in an isolated environment where the feature is enabled.
 DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm requirements:seed
 
 # Validate and import every approved 2026-27 manifest subject at the audited revision.
@@ -53,3 +53,12 @@ SMOKE_BASE_URL=https://cuweave.example SMOKE_COURSE_CODE=IERG5001 pnpm smoke
 ```
 
 Do not put real URLs or secrets in shell history on shared systems; use the deployment provider's secret injection mechanism.
+
+## Release procedure
+
+1. Merge a reviewed pull request to `main` after CI passes.
+2. Deploy that exact commit to the isolated staging project and complete smoke testing.
+3. Deploy the same validated commit to the separate production project.
+4. Complete production smoke testing and remove synthetic acceptance-test records.
+
+Staging and production must keep separate Vercel projects, databases, credentials, and secrets.

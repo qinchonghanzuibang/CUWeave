@@ -34,7 +34,7 @@ let courseCode = ''
 let offeringId = ''
 let sectionId = ''
 
-describe.skipIf(!enabled)('Public Beta PostgreSQL services', () => {
+describe.skipIf(!enabled)('public Web PostgreSQL services', () => {
   beforeAll(async () => {
     const { pool } = getDatabaseConnection()
     await pool.query(`delete from review where author_id = any($1::text[])`, [

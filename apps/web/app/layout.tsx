@@ -2,10 +2,11 @@ import type { Metadata, Viewport } from 'next'
 import Link from 'next/link'
 import { EB_Garamond, Inter } from 'next/font/google'
 
+import { requirementsEnabled } from '../lib/features'
 import { getRepositoryUrl } from '../lib/repository-url'
 import { getViewer } from '../lib/session'
 import './globals.css'
-import { SignOutButton } from './user-menu'
+import { AppHeader } from './app-header'
 
 const displayFont = EB_Garamond({
   variable: '--font-display',
@@ -21,7 +22,7 @@ const sansFont = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'),
-  title: 'CUWeave',
+  title: { default: 'CUWeave', template: '%s · CUWeave' },
   description:
     'An unofficial, student-led academic planning platform for CUHK students.',
   openGraph: {
@@ -43,74 +44,10 @@ export default async function RootLayout({
   return (
     <html className={`${displayFont.variable} ${sansFont.variable}`} lang="en">
       <body>
-        <header className="sticky top-0 z-40 border-b border-[var(--border-subtle)] bg-[rgb(247_246_242/92%)] backdrop-blur-lg">
-          <nav className="mx-auto flex w-full max-w-[76rem] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2.5 sm:px-8">
-            <Link
-              className="flex items-center gap-2 text-lg font-semibold tracking-tight text-[var(--text-primary)]"
-              href="/"
-            >
-              <span className="grid size-7 place-items-center rounded-lg bg-[var(--accent)] text-xs font-semibold text-white">
-                CW
-              </span>
-              CUWeave{' '}
-              <span className="hidden text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)] sm:inline">
-                Beta
-              </span>
-            </Link>
-            <div className="flex w-full min-w-0 flex-none flex-wrap items-center justify-start gap-0.5 sm:w-auto sm:flex-1 sm:justify-end">
-              <Link className="nav-link" href="/">
-                Home
-              </Link>
-              <Link className="nav-link" href="/courses">
-                Courses
-              </Link>
-              <Link className="nav-link" href="/planner">
-                Planner
-              </Link>
-              <Link className="nav-link" href="/requirements">
-                Requirements
-              </Link>
-              {viewer ? (
-                <>
-                  <Link className="nav-link" href="/schedules">
-                    Schedules
-                  </Link>
-                  <Link className="nav-link" href="/profile">
-                    Profile
-                  </Link>
-                  {viewer.role !== 'user' ? (
-                    <Link className="nav-link" href="/moderation">
-                      Moderate
-                    </Link>
-                  ) : null}
-                  {viewer.role === 'admin' ? (
-                    <Link className="nav-link" href="/admin/requirements">
-                      Requirement admin
-                    </Link>
-                  ) : null}
-                  <SignOutButton />
-                </>
-              ) : (
-                <Link
-                  className="button-primary whitespace-nowrap"
-                  href="/sign-in"
-                >
-                  Sign in
-                </Link>
-              )}
-              {repositoryUrl ? (
-                <a
-                  className="nav-link !hidden lg:!inline-flex"
-                  href={repositoryUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  GitHub
-                </a>
-              ) : null}
-            </div>
-          </nav>
-        </header>
+        <AppHeader
+          requirementsAvailable={requirementsEnabled()}
+          viewer={viewer ? { role: viewer.role } : null}
+        />
         {children}
         <footer className="mt-14 border-t border-[var(--border-subtle)] bg-[var(--surface-raised)]">
           <div className="page-shell flex flex-col justify-between gap-5 py-7 text-sm text-[var(--text-secondary)] sm:flex-row">
@@ -125,6 +62,11 @@ export default async function RootLayout({
               <Link href="/moderation-policy">Moderation</Link>
               <Link href="/data-status">Data status</Link>
               <Link href="/feedback">Feedback</Link>
+              {repositoryUrl ? (
+                <a href={repositoryUrl} rel="noreferrer" target="_blank">
+                  GitHub
+                </a>
+              ) : null}
             </nav>
           </div>
         </footer>

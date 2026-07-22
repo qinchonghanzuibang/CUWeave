@@ -1,3 +1,10 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'How CUWeave minimizes and protects student data.',
+}
+
 export default function PrivacyPage() {
   return (
     <main className="page-shell py-12 sm:py-16">
@@ -11,9 +18,10 @@ export default function PrivacyPage() {
         <p>
           CUWeave is an unofficial, student-led CUHK planning service. It
           collects the email address used for one-time-code authentication,
-          account and session records, favorites, saved schedules,
-          requirement-plan choices, reviews, votes, reports, and moderation
-          records needed to operate current features.
+          account and session records, favorites, saved schedules, reviews,
+          votes, reports, and moderation records needed to operate current
+          features. Previously stored requirement-plan choices remain protected
+          while that feature is unavailable.
         </p>
         <p>
           One-time-code email is processed by the configured SMTP provider.

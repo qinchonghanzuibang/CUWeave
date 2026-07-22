@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
+import { requirementsEnabled } from '../../lib/features'
 import { getViewer } from '../../lib/session'
 import { AccountActions } from './account-actions'
 
@@ -86,21 +87,23 @@ export default async function ProfilePage() {
           </Link>
         </section>
 
-        <section className="panel p-6 lg:col-span-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-            Programme planning
-          </p>
-          <h2 className="mt-2 font-display text-2xl font-medium">
-            Check requirements with sources attached.
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            Combine favorites, saved schedules, and manual completed courses.
-            Draft or approval-dependent rules remain visibly uncertain.
-          </p>
-          <Link className="button-primary mt-5" href="/requirements">
-            Open requirement checker
-          </Link>
-        </section>
+        {requirementsEnabled() ? (
+          <section className="panel p-6 lg:col-span-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+              Programme planning
+            </p>
+            <h2 className="mt-2 font-display text-2xl font-medium">
+              Check requirements with sources attached.
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+              Combine favorites, saved schedules, and manual completed courses.
+              Draft or approval-dependent rules remain visibly uncertain.
+            </p>
+            <Link className="button-primary mt-5" href="/requirements">
+              Open requirement checker
+            </Link>
+          </section>
+        ) : null}
       </div>
 
       <section className="mt-8 rounded-xl border border-red-900/15 bg-[var(--surface)] p-5">

@@ -1,18 +1,14 @@
 import { expect, test } from '@playwright/test'
 
-test('shows a source-backed draft requirement result without overclaiming', async ({
-  page,
+test('keeps requirement pages and APIs unavailable at the server boundary', async ({
+  request,
 }) => {
-  await page.goto('/requirements')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText(
-    'what still needs confirmation'
-  )
-  await expect(page.getByText('draft', { exact: true }).first()).toBeVisible()
-  await expect(page.getByText('Not reliable yet')).toBeVisible()
-  await expect(
-    page.getByRole('link', { name: 'CUHK Graduate School programme page' })
-  ).toHaveAttribute('href', /gs\.cuhk\.edu\.hk/)
-  await expect(
-    page.getByText(/CUSIS and your Division remain authoritative/)
-  ).toBeVisible()
+  for (const path of ['/requirements', '/admin/requirements']) {
+    const response = await request.get(path)
+    expect(response.status(), path).toBe(404)
+  }
+
+  const response = await request.post('/api/v1/requirements', { data: {} })
+  expect(response.status()).toBe(404)
+  await expect(response.json()).resolves.toEqual({ error: 'Not found.' })
 })

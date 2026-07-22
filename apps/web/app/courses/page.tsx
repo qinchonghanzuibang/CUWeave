@@ -9,7 +9,7 @@ import type { Metadata } from 'next'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const metadata: Metadata = {
-  title: 'Course explorer · CUWeave',
+  title: 'Course explorer',
   description:
     'Search the imported 2026–27 CUHK course catalog with provenance and bounded results.',
 }
