@@ -3,7 +3,7 @@
 ## Public availability
 
 Requirement functionality is preserved but disabled by default through the server-only
-`FEATURE_REQUIREMENTS_ENABLED` flag. Staging and production set it explicitly to `false`. When
+`FEATURE_REQUIREMENTS_ENABLED` flag. Production sets it explicitly to `false`. When
 disabled, public and administrator pages return 404, the API returns 404 before authentication or
 persistence, and navigation/course/profile/schedule summaries are omitted. The database schema,
 draft records, evaluator, administrative implementation, tests, and source documentation remain

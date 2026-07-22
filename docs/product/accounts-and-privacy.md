@@ -8,7 +8,7 @@ Production sends codes through provider-neutral SMTP and never returns or logs t
 
 Development and CI may set an explicit test domain and fixed code only with `AUTH_DEV_MODE=true` in
 a non-production process. The fixed code is configuration, never an API response or URL. Existing
-ineligible staging accounts are retained for product-history integrity, but an operator command
+ineligible accounts are retained for product-history integrity, but an operator command
 revokes their sessions and authentication accounts before public OTP is enabled.
 
 A server-only exact-email operator allowlist may permit named maintainers to sign in without

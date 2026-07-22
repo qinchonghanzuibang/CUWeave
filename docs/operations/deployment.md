@@ -1,8 +1,13 @@
-# Deployment environments
+# Production deployment
+
+CUWeave has one authoritative live environment: the `main` branch deploys to
+`https://cuweave.org`. Pull requests may receive temporary Vercel Preview deployments, but there
+is no permanent staging project, hostname, or database.
 
 ## Vercel project settings
 
-Create the Vercel project from the repository with these exact settings:
+The Vercel project is `cuw-eave/cuweave`, connected to
+`qinchonghanzuibang/CUWeave` with `main` as its Production Branch. It uses these exact settings:
 
 - Root Directory: `apps/web`
 - Framework Preset: Next.js
@@ -22,7 +27,12 @@ Server-only in Preview/Production: `DATABASE_URL`, optional `DATABASE_MIGRATION_
 
 Production uses an exact HTTPS `BETTER_AUTH_URL`, its exact trusted origin, provider-neutral SMTP, the production managed PostgreSQL pool URL, and a direct migration URL if the provider recommends one. Migrations and approved imports are separate operator commands; neither runs at build or Web startup.
 
-Preview authentication is disabled by default (`AUTH_PREVIEW_MODE=disabled`). The recommended safe strategy is one protected staging deployment with a dedicated staging database and exact stable hostname. If authentication must run on a Preview, set `AUTH_PREVIEW_MODE=isolated` and `PREVIEW_DATABASE_ISOLATED=true` only after assigning that deployment an isolated database and exact `BETTER_AUTH_URL`/`AUTH_TRUSTED_ORIGINS`. Never use one production database across arbitrary Previews, and never automatically import real course data into a Preview.
+Preview authentication is disabled by default (`AUTH_PREVIEW_MODE=disabled`). If authentication
+must run on a temporary Preview, set `AUTH_PREVIEW_MODE=isolated` and
+`PREVIEW_DATABASE_ISOLATED=true` only after assigning that deployment a disposable isolated
+database and exact `BETTER_AUTH_URL`/`AUTH_TRUSTED_ORIGINS`. Never use the production database
+across Previews, never assign a stable Preview hostname, and never automatically import real
+course data into a Preview.
 
 ## Operator commands
 
@@ -40,7 +50,7 @@ CUWEAVE_UPSTREAM_DIR=/read-only/audited/another-cuhk-course-planner \
 CUWEAVE_UPSTREAM_DIR=/read-only/audited/another-cuhk-course-planner \
   DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm data:import:all --format text
 
-# Revoke sessions/auth access for staging accounts outside the public student domain.
+# Revoke sessions/auth access for ineligible accounts outside the public student domain.
 DATABASE_URL="$APP_POOL_URL" DATABASE_SSL=true pnpm auth:revoke-ineligible --apply
 
 # Bootstrap roles after the account has signed in once.
@@ -57,8 +67,11 @@ Do not put real URLs or secrets in shell history on shared systems; use the depl
 ## Release procedure
 
 1. Merge a reviewed pull request to `main` after CI passes.
-2. Deploy that exact commit to the isolated staging project and complete smoke testing.
-3. Deploy the same validated commit to the separate production project.
-4. Complete production smoke testing and remove synthetic acceptance-test records.
+2. Confirm the Git integration automatically creates a Production deployment in
+   `cuw-eave/cuweave` for the exact merge commit.
+3. Wait for the deployment to become `READY`, verify that `https://cuweave.org` resolves to it,
+   and complete production smoke testing without writing synthetic records.
 
-Staging and production must keep separate Vercel projects, databases, credentials, and secrets.
+Production environment variables are managed remotely and must never be committed. Preview
+deployments are optional, temporary, authentication-disabled by default, and are not release
+gates or long-lived environments.
