@@ -7,12 +7,9 @@ import {
   exportAcademicTermCalendar,
   findConflicts,
   groupSectionsByAcademicTerm,
-  parseSchedule,
   parseTeachingDates,
   resolveActiveAcademicTerm,
   sectionCompatibility,
-  serializeSchedule,
-  STORAGE_KEY,
   wallClockMinutes,
   type PlannerSection,
 } from '@cuweave/planner'
@@ -20,6 +17,14 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
 import { WeeklyTimetable } from './weekly-timetable'
+import {
+  getPlannerServerSnapshot,
+  getPlannerSnapshot,
+  parsePlannerSnapshot,
+  removePlannerSection,
+  replacePlannerSections,
+  subscribePlanner,
+} from '../../lib/planner-store'
 
 type LoadedSection = CourseSection & { courseCode: string }
 const CLOUD_SCHEDULE_KEY = 'cuweave:cloud-schedule-id'
@@ -65,16 +70,9 @@ export function PlannerClient({
   const [calendarMessage, setCalendarMessage] = useState('')
   const [cloudSchedules, setCloudSchedules] = useState(schedules)
   const stored = useSyncExternalStore(
-    (notify) => {
-      window.addEventListener('storage', notify)
-      window.addEventListener('cuweave:planner-changed', notify)
-      return () => {
-        window.removeEventListener('storage', notify)
-        window.removeEventListener('cuweave:planner-changed', notify)
-      }
-    },
-    () => window.localStorage.getItem(STORAGE_KEY) ?? '',
-    () => ''
+    subscribePlanner,
+    getPlannerSnapshot,
+    getPlannerServerSnapshot
   )
   const selectedCloudId = useSyncExternalStore(
     (notify) => {
@@ -88,7 +86,7 @@ export function PlannerClient({
     () => window.localStorage.getItem(CLOUD_SCHEDULE_KEY) ?? '',
     () => ''
   )
-  const sectionIds = useMemo(() => parseSchedule(stored).sectionIds, [stored])
+  const sectionIds = useMemo(() => parsePlannerSnapshot(stored), [stored])
   const storedActiveTerm = useSyncExternalStore(
     (notify) => {
       window.addEventListener('storage', notify)
@@ -124,8 +122,7 @@ export function PlannerClient({
   }, [sectionIds])
 
   function store(ids: string[]) {
-    window.localStorage.setItem(STORAGE_KEY, serializeSchedule(ids))
-    window.dispatchEvent(new Event('cuweave:planner-changed'))
+    replacePlannerSections(ids)
   }
 
   function selectAcademicTerm(id: string) {
@@ -427,9 +424,7 @@ export function PlannerClient({
       {visibleSections.length > 0 ? (
         <WeeklyTimetable
           label={activeGroup?.label ?? 'Active term'}
-          onRemove={(sectionId) =>
-            store(sectionIds.filter((id) => id !== sectionId))
-          }
+          onRemove={(sectionId) => removePlannerSection(sectionId)}
           sections={visibleSections}
         />
       ) : null}
@@ -459,9 +454,7 @@ export function PlannerClient({
               </div>
               <button
                 className="text-sm font-semibold text-[var(--danger)]"
-                onClick={() =>
-                  store(sectionIds.filter((id) => id !== section.id))
-                }
+                onClick={() => removePlannerSection(section.id)}
                 type="button"
               >
                 Remove

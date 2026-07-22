@@ -1,8 +1,12 @@
 'use client'
 
 import type { SavedScheduleRecord } from '@cuweave/db'
-import { parseSchedule, serializeSchedule, STORAGE_KEY } from '@cuweave/planner'
 import { useState } from 'react'
+
+import {
+  getPlannerSectionIds,
+  replacePlannerSections,
+} from '../../lib/planner-store'
 
 const CLOUD_SCHEDULE_KEY = 'cuweave:cloud-schedule-id'
 
@@ -24,9 +28,7 @@ export function ScheduleLibrary({
   }
 
   async function create(importLocal: boolean) {
-    const sectionIds = importLocal
-      ? parseSchedule(localStorage.getItem(STORAGE_KEY)).sectionIds
-      : []
+    const sectionIds = importLocal ? getPlannerSectionIds() : []
     const response = await fetch('/api/v1/schedules', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -92,9 +94,8 @@ export function ScheduleLibrary({
   }
 
   function loadLocally(schedule: SavedScheduleRecord) {
-    localStorage.setItem(STORAGE_KEY, serializeSchedule(schedule.sectionIds))
+    replacePlannerSections(schedule.sectionIds)
     localStorage.setItem(CLOUD_SCHEDULE_KEY, schedule.id)
-    window.dispatchEvent(new Event('cuweave:planner-changed'))
     location.assign('/planner')
   }
 
