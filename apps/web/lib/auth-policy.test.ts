@@ -13,10 +13,10 @@ afterEach(() => {
 describe('authentication deployment policy', () => {
   it('accepts only exact configured origins', () => {
     process.env.BETTER_AUTH_URL = 'https://cuweave.example'
-    process.env.AUTH_TRUSTED_ORIGINS = 'https://staging.cuweave.example'
+    process.env.AUTH_TRUSTED_ORIGINS = 'https://preview.cuweave.example'
     expect(authTrustedOrigins()).toEqual([
       'https://cuweave.example',
-      'https://staging.cuweave.example',
+      'https://preview.cuweave.example',
     ])
     process.env.AUTH_TRUSTED_ORIGINS = 'https://*.vercel.app'
     expect(() => authTrustedOrigins()).toThrow('exact origin')

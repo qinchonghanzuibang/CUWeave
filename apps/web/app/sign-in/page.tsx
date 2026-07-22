@@ -28,8 +28,8 @@ export default async function SignInPage() {
         <SignInForm />
       ) : (
         <div className="status-banner status-warning mx-auto max-w-xl p-5 text-center">
-          Sign-in is disabled for this Preview deployment. Use the protected
-          staging environment or ask a maintainer for an isolated Preview.
+          Sign-in is disabled for this Preview deployment. Ask a maintainer to
+          provision an isolated Preview if authentication testing is required.
         </div>
       )}
     </main>
