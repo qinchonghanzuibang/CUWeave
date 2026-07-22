@@ -17,8 +17,11 @@ test('shows the anonymous launch navigation without privileged links', async ({
 }, testInfo) => {
   await page.goto('/')
   const primary = page.getByRole('navigation', { name: 'Primary navigation' })
-  if (testInfo.project.name === 'narrow')
+  if (testInfo.project.name === 'narrow') {
     await primary.getByRole('button', { name: 'Menu' }).click()
+  } else {
+    await expect(primary.locator('button.mobile-menu-trigger')).toBeHidden()
+  }
   const surface =
     testInfo.project.name === 'narrow'
       ? page.getByRole('menu', { name: 'Mobile navigation' })

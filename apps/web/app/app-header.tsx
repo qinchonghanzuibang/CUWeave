@@ -163,7 +163,7 @@ export function AppHeader({
               <button
                 aria-expanded={accountOpen}
                 aria-haspopup="menu"
-                className="account-trigger"
+                className="account-trigger inline-flex"
                 onClick={openAccountMenu}
                 ref={accountTriggerRef}
                 type="button"
@@ -209,7 +209,7 @@ export function AppHeader({
         <button
           aria-expanded={mobileOpen}
           aria-haspopup="menu"
-          className="mobile-menu-trigger md:hidden"
+          className="mobile-menu-trigger inline-flex md:hidden"
           onClick={openMobileMenu}
           ref={mobileTriggerRef}
           type="button"

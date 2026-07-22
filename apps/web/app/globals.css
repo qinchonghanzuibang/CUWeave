@@ -208,7 +208,6 @@ a {
 
 .account-trigger,
 .mobile-menu-trigger {
-  display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
   justify-content: center;
