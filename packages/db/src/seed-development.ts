@@ -68,6 +68,46 @@ async function seed() {
   } finally {
     client.release()
   }
+  await pool.query(
+    `with source as (
+       select s.* from course c
+       join course_offering o on o.course_id=c.id and o.valid_to_import_run_id is null
+       join section s on s.offering_id=o.id and s.valid_to_import_run_id is null
+       where c.subject_code='ZZZZ' and c.catalog_number='1001'
+         and s.section_key='A-LEC (1001)'
+     )
+     insert into section (
+       offering_id,section_key,section_label_raw,class_attributes_raw,
+       capacity_raw,capacity,enrolled_raw,enrolled,available_seats_raw,
+       available_seats,waitlist_capacity_raw,waitlist_capacity,
+       waitlist_total_raw,waitlist_total,availability_status_raw,revision_hash,
+       valid_from_import_run_id,valid_to_import_run_id,first_seen_snapshot_id,
+       last_seen_snapshot_id
+     )
+     select offering_id,'B-LEC (1004)','B-LEC (1004)',
+       'Synthetic second-section fixture','25',25,'5',5,'20',20,'0',0,
+       '0',0,'Open',repeat('b',64),valid_from_import_run_id,null,
+       first_seen_snapshot_id,last_seen_snapshot_id
+     from source
+     on conflict (offering_id,section_key)
+       where valid_to_import_run_id is null do nothing`
+  )
+  await pool.query(
+    `insert into meeting (
+       section_id,ordinal,time_raw,time_status,weekday,start_time,end_time,
+       teaching_dates_raw,location_raw,instructor_display_raw
+     )
+     select target.id,0,'Tu 1:30PM - 2:45PM','parsed',2,'13:30','14:45',
+       '2/9, 9/9, 16/9, 23/9, 30/9','Synthetic Room D',
+       'Professor SAMPLE Delta'
+     from course c
+     join course_offering o on o.course_id=c.id and o.valid_to_import_run_id is null
+     join section target on target.offering_id=o.id
+       and target.valid_to_import_run_id is null
+       and target.section_key='B-LEC (1004)'
+     where c.subject_code='ZZZZ' and c.catalog_number='1001'
+     on conflict (section_id,ordinal) do nothing`
+  )
   const catalog = await pool.query<{
     course_id: string
     offering_id: string

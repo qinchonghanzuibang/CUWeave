@@ -79,7 +79,7 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
   ).toBeVisible()
 
   await page.getByRole('button', { name: 'Add to planner' }).first().click()
-  await page.getByRole('link', { name: /View planner/ }).click()
+  await page.getByRole('link', { name: 'Added to planner' }).click()
   await page.getByRole('button', { name: 'Save cloud copy' }).click()
   await expect(page.getByText(/Saved as a new cloud schedule/)).toBeVisible()
 
