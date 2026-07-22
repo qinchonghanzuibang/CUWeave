@@ -84,6 +84,7 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
   await timetableScroller.evaluate((element) => {
     element.scrollLeft = 180
   })
+  await termOneMeeting.focus()
   const scrollBeforeDialog = await page.evaluate(() => ({
     pageX: scrollX,
     pageY: scrollY,
@@ -91,7 +92,6 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
       '[data-testid="timetable-horizontal-scroll"]'
     )!.scrollLeft,
   }))
-  await termOneMeeting.focus()
   await termOneMeeting.press('Enter')
   const desktopDetails = page.getByRole('dialog', {
     name: 'Synthetic Security & Privacy Systems',
