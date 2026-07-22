@@ -45,6 +45,117 @@ html {
   background: var(--page);
 }
 
+.navigation-progress {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.navigation-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    #9d4a93 72%,
+    #c08b2a 100%
+  );
+  box-shadow: 0 0 10px rgb(111 45 108 / 45%);
+}
+
+.navigation-progress[data-phase='loading'],
+.navigation-progress[data-phase='finishing'] {
+  opacity: 1;
+}
+
+.navigation-progress[data-phase='loading'] span {
+  animation: navigation-progress-loading 12s cubic-bezier(0.15, 0.7, 0.2, 1)
+    forwards;
+}
+
+.navigation-progress[data-phase='finishing'] {
+  opacity: 0;
+  transition: opacity 180ms ease 40ms;
+}
+
+.navigation-progress[data-phase='finishing'] span {
+  transform: scaleX(1);
+  transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.navigation-page {
+  transition:
+    opacity 150ms ease,
+    transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+html[data-navigation='loading'] .navigation-page {
+  transform: translateY(2px);
+  opacity: 0.88;
+}
+
+html[data-navigation='settling'] .navigation-page {
+  animation: navigation-page-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes navigation-progress-loading {
+  0% {
+    transform: scaleX(0.06);
+  }
+  18% {
+    transform: scaleX(0.38);
+  }
+  52% {
+    transform: scaleX(0.68);
+  }
+  100% {
+    transform: scaleX(0.92);
+  }
+}
+
+@keyframes navigation-page-enter {
+  from {
+    transform: translateY(3px);
+    opacity: 0.84;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation-progress,
+  .navigation-progress span,
+  .navigation-page {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .navigation-progress[data-phase='loading'] span {
+    transform: scaleX(0.72);
+  }
+
+  .navigation-progress[data-phase='finishing'] span {
+    transform: scaleX(1);
+  }
+
+  html[data-navigation='loading'] .navigation-page {
+    transform: none;
+    opacity: 0.94;
+  }
+}
+
 body {
   min-height: 100vh;
   margin: 0;

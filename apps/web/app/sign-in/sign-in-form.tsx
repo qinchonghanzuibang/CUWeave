@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { startNavigationFeedback } from '../../lib/navigation-feedback'
+
 export function SignInForm() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -52,6 +54,7 @@ export function SignInForm() {
       const data = (await response.json()) as { error?: string }
       if (!response.ok)
         throw new Error(data.error ?? 'The code is invalid or expired.')
+      startNavigationFeedback()
       router.push('/profile')
       router.refresh()
     } catch (error) {

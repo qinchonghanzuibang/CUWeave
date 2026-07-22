@@ -43,6 +43,28 @@ test('shows the anonymous launch navigation without privileged links', async ({
   await expect(page.getByText('Beta', { exact: true })).toHaveCount(0)
 })
 
+test('shows immediate feedback while an internal route is loading', async ({
+  page,
+}) => {
+  await page.route('**/courses?*', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 450))
+    await route.continue()
+  })
+  await page.goto('/')
+
+  const feedback = page.locator('.navigation-progress')
+  await page.getByRole('link', { name: 'Explore courses' }).click()
+  await expect(feedback).toHaveAttribute('data-phase', 'loading')
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-navigation',
+    'loading'
+  )
+
+  await page.waitForURL('/courses')
+  await expect(feedback).toHaveAttribute('data-phase', 'idle')
+  await expect(page.locator('html')).not.toHaveAttribute('data-navigation')
+})
+
 test('keeps ordinary account actions in the account menu', async ({
   page,
 }, testInfo) => {

@@ -7,6 +7,7 @@ import { getRepositoryUrl } from '../lib/repository-url'
 import { getViewer } from '../lib/session'
 import './globals.css'
 import { AppHeader } from './app-header'
+import { NavigationFeedback } from './navigation-feedback'
 
 const displayFont = EB_Garamond({
   variable: '--font-display',
@@ -44,11 +45,12 @@ export default async function RootLayout({
   return (
     <html className={`${displayFont.variable} ${sansFont.variable}`} lang="en">
       <body>
+        <NavigationFeedback />
         <AppHeader
           requirementsAvailable={requirementsEnabled()}
           viewer={viewer ? { role: viewer.role } : null}
         />
-        {children}
+        <div className="navigation-page">{children}</div>
         <footer className="mt-14 border-t border-[var(--border-subtle)] bg-[var(--surface-raised)]">
           <div className="page-shell flex flex-col justify-between gap-5 py-7 text-sm text-[var(--text-secondary)] sm:flex-row">
             <p>CUWeave is unofficial. Verify final details in CUSIS.</p>
