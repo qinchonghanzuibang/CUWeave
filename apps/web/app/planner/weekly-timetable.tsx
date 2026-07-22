@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  formatTeachingDates,
   layoutOverlappingMeetings,
   meetingVerticalLayout,
   TIMETABLE_END_MINUTES,
@@ -9,10 +8,12 @@ import {
   TIMETABLE_HOUR_HEIGHT_PX,
   TIMETABLE_INTERVAL_MINUTES,
   TIMETABLE_START_MINUTES,
+  teachingOccurrenceDates,
   type PlannerMeeting,
   type PlannerSection,
 } from '@cuweave/planner'
 import Link from 'next/link'
+import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
 const weekdays = [
@@ -61,8 +62,47 @@ interface CalendarMeeting {
   endMinutes: number
 }
 
-interface OpenMeeting extends CalendarMeeting {
-  anchor: { left: number; top: number } | null
+type OpenMeeting = CalendarMeeting
+
+function teachingDateSummary(meeting: OpenMeeting): {
+  detail: string
+  items: string[]
+  summary: string
+} {
+  const teachingDates = meeting.meeting.teachingDates
+  if (teachingDates.kind === 'unknown')
+    return {
+      summary: 'Effective dates are not confirmed.',
+      detail: 'The source provides unstructured teaching-date information.',
+      items: [teachingDates.raw || 'Unknown teaching dates'],
+    }
+
+  const occurrences = teachingOccurrenceDates(
+    teachingDates,
+    meeting.meeting.weekday ?? 0
+  )
+  const boundaries = [
+    ...teachingDates.dates,
+    ...teachingDates.ranges.flatMap((range) => [range.start, range.end]),
+  ].sort()
+  const range = boundaries.length
+    ? boundaries[0] === boundaries.at(-1)
+      ? boundaries[0]
+      : `${boundaries[0]} – ${boundaries.at(-1)}`
+    : 'Not provided'
+  const split = teachingDates.ranges.length > 1
+  return {
+    summary: `${range} · ${occurrences.length} teaching date${occurrences.length === 1 ? '' : 's'}`,
+    detail: split
+      ? `${teachingDates.ranges.length} split effective ranges; breaks between ranges are preserved.`
+      : 'Effective teaching dates from the authoritative source.',
+    items: [
+      ...teachingDates.dates.map((date) => date),
+      ...teachingDates.ranges.map(
+        (item) => `${item.start} – ${item.end} (effective range)`
+      ),
+    ],
+  }
 }
 
 function MeetingDetails({
@@ -77,6 +117,7 @@ function MeetingDetails({
   const dialogRef = useRef<HTMLDivElement>(null)
   const dialogId = `meeting-detail-${meeting.section.id}-${meeting.id}`
   const titleId = `${dialogId}-title`
+  const descriptionId = `${dialogId}-description`
   const component = /-([A-Z]{2,5})\b/.exec(meeting.section.label)?.[1]
   const classNumber = /\(([^)]+)\)\s*$/.exec(meeting.section.label)?.[1]
   const warnings = [
@@ -88,11 +129,17 @@ function MeetingDetails({
       ? 'Venue is not confirmed.'
       : null,
   ].filter(Boolean)
+  const teachingDates = teachingDateSummary(meeting)
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     dialogRef.current
       ?.querySelector<HTMLElement>('[data-dialog-initial-focus]')
       ?.focus()
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
   }, [])
 
   function onDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -119,28 +166,25 @@ function MeetingDetails({
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-slate-950/25 sm:bg-transparent"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/45 sm:items-center sm:p-4"
+      data-testid="meeting-dialog-portal"
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) onClose()
       }}
     >
       <div
+        aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
-        className="fixed right-0 bottom-0 left-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xl sm:right-auto sm:bottom-auto sm:left-auto sm:w-[23rem] sm:rounded-xl"
+        className="flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl sm:max-h-[min(88dvh,48rem)] sm:w-[min(36rem,calc(100vw-2rem))] sm:rounded-2xl"
         onKeyDown={onDialogKeyDown}
         ref={dialogRef}
         role="dialog"
         id={dialogId}
-        style={
-          meeting.anchor
-            ? { left: meeting.anchor.left, top: meeting.anchor.top }
-            : undefined
-        }
       >
-        <div className="flex items-start justify-between gap-4">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-[var(--border-subtle)] bg-[var(--surface)] px-5 py-4 sm:px-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
               {meeting.section.courseCode}
@@ -158,58 +202,85 @@ function MeetingDetails({
           >
             ×
           </button>
+        </header>
+
+        <div
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6"
+          data-testid="meeting-dialog-content"
+        >
+          <p className="sr-only" id={descriptionId}>
+            Meeting details for {meeting.section.courseCode}, including
+            schedule, teaching dates, source information, and planner actions.
+          </p>
+          <dl className="grid grid-cols-[minmax(6rem,7rem)_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
+            <dt className="text-[var(--text-muted)]">Term</dt>
+            <dd>
+              {meeting.section.academicYear} · {meeting.section.termName}
+            </dd>
+            <dt className="text-[var(--text-muted)]">Activity</dt>
+            <dd>{component ?? 'Not specified'}</dd>
+            <dt className="text-[var(--text-muted)]">Section</dt>
+            <dd>{meeting.section.label}</dd>
+            <dt className="text-[var(--text-muted)]">Class number</dt>
+            <dd>{classNumber ?? 'Not provided'}</dd>
+            <dt className="text-[var(--text-muted)]">When</dt>
+            <dd>
+              {weekdays[meeting.meeting.weekday! - 1]} ·{' '}
+              {formatTime(meeting.startMinutes)}–
+              {formatTime(meeting.endMinutes)}
+            </dd>
+            <dt className="text-[var(--text-muted)]">Venue</dt>
+            <dd>{meeting.meeting.locationRaw || 'Not provided'}</dd>
+            <dt className="text-[var(--text-muted)]">Instructor</dt>
+            <dd>{meeting.meeting.instructorDisplayRaw || 'Not provided'}</dd>
+            <dt className="text-[var(--text-muted)]">Teaching dates</dt>
+            <dd>
+              <p>{teachingDates.summary}</p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">
+                {teachingDates.detail}
+              </p>
+              <details className="mt-2">
+                <summary className="cursor-pointer font-semibold text-[var(--accent)]">
+                  View all teaching dates
+                </summary>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  {teachingDates.items.map((item) => (
+                    <li className="break-words" key={item}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </dd>
+          </dl>
+
+          {warnings.length ? (
+            <div className="status-banner status-warning mt-5">
+              <ul className="list-disc space-y-1 pl-5">
+                {warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <p className="mt-5 text-xs leading-5 text-[var(--text-muted)]">
+            Source: {meeting.section.sourceName} · revision{' '}
+            {meeting.section.sourceRevision}
+            {meeting.section.importedAt
+              ? ` · imported ${new Date(meeting.section.importedAt).toLocaleString('en-HK')}`
+              : ''}
+          </p>
         </div>
-
-        <dl className="mt-5 grid grid-cols-[7rem_1fr] gap-x-3 gap-y-2 text-sm">
-          <dt className="text-[var(--text-muted)]">Term</dt>
-          <dd>
-            {meeting.section.academicYear} · {meeting.section.termName}
-          </dd>
-          <dt className="text-[var(--text-muted)]">Activity</dt>
-          <dd>{component ?? 'Not specified'}</dd>
-          <dt className="text-[var(--text-muted)]">Section</dt>
-          <dd>{meeting.section.label}</dd>
-          <dt className="text-[var(--text-muted)]">Class number</dt>
-          <dd>{classNumber ?? 'Not provided'}</dd>
-          <dt className="text-[var(--text-muted)]">When</dt>
-          <dd>
-            {weekdays[meeting.meeting.weekday! - 1]} ·{' '}
-            {formatTime(meeting.startMinutes)}–{formatTime(meeting.endMinutes)}
-          </dd>
-          <dt className="text-[var(--text-muted)]">Venue</dt>
-          <dd>{meeting.meeting.locationRaw || 'Not provided'}</dd>
-          <dt className="text-[var(--text-muted)]">Instructor</dt>
-          <dd>{meeting.meeting.instructorDisplayRaw || 'Not provided'}</dd>
-          <dt className="text-[var(--text-muted)]">Teaching dates</dt>
-          <dd>{formatTeachingDates(meeting.meeting.teachingDates)}</dd>
-        </dl>
-
-        {warnings.length ? (
-          <div className="status-banner status-warning mt-5">
-            <ul className="list-disc space-y-1 pl-5">
-              {warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        <p className="mt-5 text-xs leading-5 text-[var(--text-muted)]">
-          Source: {meeting.section.sourceName} · revision{' '}
-          {meeting.section.sourceRevision}
-          {meeting.section.importedAt
-            ? ` · imported ${new Date(meeting.section.importedAt).toLocaleString('en-HK')}`
-            : ''}
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
+        <footer className="flex shrink-0 flex-wrap gap-2 border-t border-[var(--border-subtle)] bg-[var(--surface)] px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
           <Link
-            className="button-primary"
+            className="button-primary min-h-11"
             href={`/courses/${meeting.section.courseCode}`}
           >
             View course
           </Link>
           <button
-            className="button-danger"
+            className="button-danger min-h-11"
             onClick={() => {
               onRemove(meeting.section.id)
               onClose()
@@ -218,9 +289,10 @@ function MeetingDetails({
           >
             Remove from planner
           </button>
-        </div>
+        </footer>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -270,6 +342,12 @@ export function WeeklyTimetable({
     setOpenMeeting(null)
     requestAnimationFrame(() => triggerRef.current?.focus())
   }
+
+  const displayedOpenMeeting =
+    openMeeting &&
+    sections.some((section) => section.id === openMeeting.section.id)
+      ? openMeeting
+      : null
 
   return (
     <>
@@ -369,7 +447,11 @@ export function WeeklyTimetable({
                       return (
                         <button
                           aria-controls={`meeting-detail-${meeting.section.id}-${meeting.id}`}
-                          aria-expanded={openMeeting?.id === meeting.id}
+                          aria-expanded={
+                            displayedOpenMeeting?.id === meeting.id &&
+                            displayedOpenMeeting.section.id ===
+                              meeting.section.id
+                          }
                           aria-haspopup="dialog"
                           aria-label={accessibleLabel}
                           className="absolute overflow-hidden rounded-md border border-white/15 bg-[var(--accent)] px-2 py-1.5 text-left text-white shadow-[0_1px_3px_rgb(36_33_31/0.18)] outline-none transition-[filter,box-shadow] hover:brightness-105 focus-visible:brightness-105 focus-visible:shadow-[0_0_0_3px_var(--focus-ring)]"
@@ -380,30 +462,7 @@ export function WeeklyTimetable({
                           key={`${meeting.section.id}:${meeting.id}`}
                           onClick={(event) => {
                             triggerRef.current = event.currentTarget
-                            const rect =
-                              event.currentTarget.getBoundingClientRect()
-                            const narrow = window.innerWidth < 640
-                            setOpenMeeting({
-                              ...meeting,
-                              anchor: narrow
-                                ? null
-                                : {
-                                    left: Math.max(
-                                      16,
-                                      Math.min(
-                                        rect.left,
-                                        window.innerWidth - 384
-                                      )
-                                    ),
-                                    top: Math.max(
-                                      16,
-                                      Math.min(
-                                        rect.bottom + 8,
-                                        window.innerHeight - 560
-                                      )
-                                    ),
-                                  },
-                            })
+                            setOpenMeeting(meeting)
                           }}
                           style={{
                             top: `${vertical.topPx}px`,
@@ -441,9 +500,9 @@ export function WeeklyTimetable({
           </div>
         </div>
       </section>
-      {openMeeting ? (
+      {displayedOpenMeeting ? (
         <MeetingDetails
-          meeting={openMeeting}
+          meeting={displayedOpenMeeting}
           onClose={closeDetails}
           onRemove={onRemove}
         />
