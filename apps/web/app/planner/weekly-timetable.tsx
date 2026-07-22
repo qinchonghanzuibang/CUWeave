@@ -343,7 +343,9 @@ export function WeeklyTimetable({
 
   function closeDetails() {
     setOpenMeeting(null)
-    requestAnimationFrame(() => triggerRef.current?.focus())
+    requestAnimationFrame(() =>
+      triggerRef.current?.focus({ preventScroll: true })
+    )
   }
 
   const displayedOpenMeeting =
