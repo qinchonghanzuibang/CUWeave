@@ -151,7 +151,7 @@ function MeetingDetails({
           </div>
           <button
             aria-label="Close meeting details"
-            className="mobile-menu-trigger !min-h-11 !min-w-11 !p-2"
+            className="mobile-menu-trigger inline-flex !min-h-11 !min-w-11 !p-2"
             data-dialog-initial-focus
             onClick={onClose}
             type="button"
