@@ -16,6 +16,7 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
   await page.goto('/courses?q=security%20privacy')
   await expect(page.getByRole('link', { name: /ZZZZ1001/ })).toBeVisible()
   await page.getByRole('link', { name: /ZZZZ1001/ }).click()
+  await expect(page).toHaveURL(/\/courses\/ZZZZ1001$/)
   const courseOneUrl = page.url()
   await expect(
     page.getByRole('button', { name: 'Add to planner' })
