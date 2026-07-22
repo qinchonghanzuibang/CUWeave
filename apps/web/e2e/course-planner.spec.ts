@@ -100,6 +100,7 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
   await expect(desktopDetails.getByText('Professor SAMPLE Alpha')).toBeVisible()
   await expect(desktopDetails.getByText('Synthetic Room A')).toBeVisible()
   await expect(desktopDetails.getByText(/2099-00 Term 1/)).toBeVisible()
+  await expect(desktopDetails.getByText(/5 teaching dates/)).toBeVisible()
   await expect(
     desktopDetails.getByRole('link', { name: 'View course' })
   ).toHaveAttribute('href', '/courses/ZZZZ1001')
@@ -141,7 +142,9 @@ test('normalizes search and isolates persisted planner terms and meetings', asyn
     dialogLayout.dialogBottom
   )
   await desktopDetails.getByText('View all teaching dates').click()
-  await expect(desktopDetails.getByText('2099-09-01')).toBeVisible()
+  await expect(
+    desktopDetails.getByText('2099-09-01', { exact: true })
+  ).toBeVisible()
   await desktopDetails.press('Escape')
   await expect(desktopDetails).toBeHidden()
   await expect(termOneMeeting).toBeFocused()

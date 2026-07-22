@@ -77,10 +77,13 @@ function teachingDateSummary(meeting: OpenMeeting): {
       items: [teachingDates.raw || 'Unknown teaching dates'],
     }
 
-  const occurrences = teachingOccurrenceDates(
-    teachingDates,
-    meeting.meeting.weekday ?? 0
-  )
+  const occurrences = new Set([
+    ...teachingDates.dates,
+    ...teachingOccurrenceDates(
+      { kind: 'known', dates: [], ranges: teachingDates.ranges },
+      meeting.meeting.weekday ?? 0
+    ),
+  ])
   const boundaries = [
     ...teachingDates.dates,
     ...teachingDates.ranges.flatMap((range) => [range.start, range.end]),
@@ -92,7 +95,7 @@ function teachingDateSummary(meeting: OpenMeeting): {
     : 'Not provided'
   const split = teachingDates.ranges.length > 1
   return {
-    summary: `${range} · ${occurrences.length} teaching date${occurrences.length === 1 ? '' : 's'}`,
+    summary: `${range} · ${occurrences.size} teaching date${occurrences.size === 1 ? '' : 's'}`,
     detail: split
       ? `${teachingDates.ranges.length} split effective ranges; breaks between ranges are preserved.`
       : 'Effective teaching dates from the authoritative source.',
