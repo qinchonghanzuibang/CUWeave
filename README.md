@@ -1,83 +1,153 @@
+<div align="center">
+
 # CUWeave
 
-**Plan courses. Share experiences. Navigate your degree.**
+### Explore courses. Plan your schedule. Share experiences.
 
-**选课、评价与培养规划，一处完成。**
+CUWeave helps CUHK students discover courses, build weekly timetables, save different plans, and
+learn from other students’ experiences—all in one place.
 
-CUWeave is an open-source academic planning platform for students at The Chinese University of
-Hong Kong. It brings course discovery, timetable planning, community experience, and saved
-schedules into one coherent Web experience.
+**[Try CUWeave](https://cuweave.org)** ·
+[Report an issue](https://github.com/qinchonghanzuibang/CUWeave/issues) ·
+[Contribute](#contributing)
+
+</div>
+
+<!--
+Demo video replacement:
+- Keep docs/assets/readme/demo-cover.png as the poster image.
+- Replace only the anchor href below with the final public demo-video URL.
+- Recommended video: 1600 × 900, 45–60 seconds, following docs/readme-media-guide.md.
+-->
+<a href="https://cuweave.org">
+  <img
+    src="docs/assets/readme/demo-cover.png"
+    alt="A populated CUWeave weekly timetable with real course meetings arranged from Monday to Sunday"
+    width="1600"
+  />
+</a>
+
+<p align="center">
+  <sub>A real signed-out planner view from the public application. Course details remain connected to every meeting.</sub>
+</p>
+
+> CUWeave is an unofficial, student-led project. It is not affiliated with or endorsed by The
+> Chinese University of Hong Kong. Always verify final course and enrollment details in CUSIS.
+
+## One place for the decisions around your timetable
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h3>Explore courses</h3>
+      Search by course code or title, filter by subject and term, and compare offerings, sections,
+      meetings, instructors, and teaching dates together.
+    </td>
+    <td width="33%" valign="top">
+      <h3>Plan your schedule</h3>
+      Add real sections to a Monday–Sunday weekly timetable, move between academic terms, spot
+      confirmed or uncertain conflicts, and export a calendar.
+    </td>
+    <td width="33%" valign="top">
+      <h3>Share experiences</h3>
+      Read structured experiences tied to a course offering or instructor. Eligible students can
+      sign in to contribute, vote, and report concerns.
+    </td>
+  </tr>
+</table>
+
+## See CUWeave in action
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img
+        src="docs/assets/readme/course-discovery.png"
+        alt="CUWeave course discovery showing an IERG search and a grid of matching courses"
+        width="720"
+      />
+      <p align="center"><sub>Search the current catalog and narrow it by subject or term.</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img
+        src="docs/assets/readme/course-detail.png"
+        alt="CUWeave course detail for IERG5310 with its title, section, meeting time, location, teaching dates, instructor, and Add to planner action"
+        width="720"
+      />
+      <p align="center"><sub>Inspect a section in context, then add it directly to the planner.</sub></p>
+    </td>
+  </tr>
+</table>
+
+<img
+  src="docs/assets/readme/weekly-planner.png"
+  alt="CUWeave weekly planner showing Monday through Sunday, an 8 AM to 11 PM time axis, and meetings for ENGG5402, IERG5310, and IERG5470"
+  width="1152"
+/>
+
+<p align="center">
+  <sub>Compare a coherent week at a glance. Meeting cards use current public course data.</sub>
+</p>
+
+## Why CUWeave
+
+- **One connected workflow.** Move from search to section details to a weekly plan without
+  rebuilding the same context in separate tools.
+- **Made for CUHK course structure.** Offerings, sections, meeting patterns, teaching dates, and
+  instructors stay visible where they matter.
+- **Plans stay useful.** Anonymous choices remain in the browser; signed-in students can keep
+  private named schedules and create revocable read-only share links.
+- **Source context stays visible.** Catalog coverage, import time, and source revision are available
+  alongside course information.
+
+## Available now
+
+CUWeave is publicly available at **[cuweave.org](https://cuweave.org)**. The live catalog currently
+reports complete 2026–27 manifest coverage across **197 of 197 subjects**; see the always-current
+[data status page](https://cuweave.org/data-status) for course, offering, and section counts.
+
+Course discovery and the local planner work without an account. Private favorites, named cloud
+schedules, read-only sharing, and review contributions require a one-time code sent to an exact
+`@link.cuhk.edu.hk` address. Requirement checking is not part of the current public release; it is a
+possible future roadmap item.
+
+CUWeave does not replace CUSIS or official CUHK materials. Confirm enrollment availability, times,
+venues, teaching dates, and academic decisions with the university’s authoritative systems.
+
+## Trust and privacy
+
+- CUWeave never asks for a OnePass password, student ID, legal name, or transcript.
+- Anonymous planner choices stay in the current browser unless the student chooses to sign in and
+  save a private cloud copy.
+- Public anonymous reviews do not expose the author’s account identity.
+- Course pages retain visible source and update context, and corrections can be reported without
+  including private student information.
+
+Read the current [Privacy Policy](https://cuweave.org/privacy),
+[Terms of Use](https://cuweave.org/terms),
+[Community Guidelines](https://cuweave.org/community-guidelines), and
+[Review and Moderation Policy](https://cuweave.org/moderation-policy).
+
+## Open-source project
 
 [![CI](https://github.com/qinchonghanzuibang/CUWeave/actions/workflows/ci.yml/badge.svg)](https://github.com/qinchonghanzuibang/CUWeave/actions/workflows/ci.yml)
-[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-2563eb.svg)](LICENSE)
-![Status: Public](https://img.shields.io/badge/status-Public-7c3aed.svg)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-6f2d6c.svg)](LICENSE)
 
-> **CUWeave is an unofficial, student-led project. It is not affiliated with or endorsed by CUHK.
-> Always verify final course and enrollment information in CUSIS.**
+CUWeave is a TypeScript and Python monorepo built with Next.js, React, Tailwind CSS, PostgreSQL,
+Drizzle ORM, Better Auth, Pydantic, and Psycopg. Vitest, pytest, Playwright, Ruff, and GitHub Actions
+cover application and data-pipeline quality.
 
-## What is CUWeave?
+<details>
+<summary><strong>Run CUWeave locally</strong></summary>
 
-CUWeave connects the decisions students usually make across separate tools. Discover a course,
-inspect its offerings and meetings, add a section to a timetable, save the schedule, follow the
-course, read experience tied to a specific instructor or offering, and evaluate programme progress
-without losing context between pages.
+### Requirements
 
-The result is a unified course experience: academic records, personal planning, and community
-knowledge remain connected while their different sources and confidence levels stay visible.
+- Node.js 22+
+- pnpm 11+
+- Python 3.12+ and uv
+- Docker Compose
 
-## Features
-
-- **Course discovery** — Search and filter courses, offerings, sections, meetings, and instructors.
-- **Timetable planner** — Build local schedules with deterministic conflict detection and explicit
-  uncertainty for incomplete teaching dates.
-- **Accounts and cloud schedules** — Save, rename, duplicate, import, share, and revoke schedules
-  with account isolation and optimistic concurrency.
-- **Favorites** — Keep a private course shortlist connected to course and planning views.
-- **Contextual reviews** — Share experience for a specific course offering and, optionally, a
-  specific instructor across structured rating dimensions.
-- **Community safety** — Vote on reviews, report concerns, preserve revisions, and support audited
-  moderation decisions.
-- **Unified course details** — See academic history, current offerings, planning actions,
-  and community experience in one place.
-
-The source-backed requirement engine and its versioned data are preserved for future work, but
-requirement checking is intentionally unavailable on the public site until its rules are ready for
-student use.
-
-## Designed for trust
-
-- Imported academic records retain source URI, upstream revision, retrieval time, adapter version,
-  snapshot hash, and import history.
-- Changed source records create historical versions instead of silently overwriting the past.
-- Missing, ambiguous, or approval-dependent information stays uncertain; CUWeave does not invent
-  academic rules or meeting details.
-- Anonymous reviews hide account identity publicly, while the authenticated author relationship is
-  retained internally for editing, abuse handling, and moderation.
-- Rate limiting uses keyed identifiers; raw IP addresses are neither stored nor logged.
-- CUWeave never asks for CUHK passwords, OnePass credentials, student IDs (SID), or transcripts.
-- CUSIS and official CUHK materials remain authoritative for enrollment and degree decisions.
-
-## Current coverage
-
-The local import pipeline has been validated against pinned **2026–27 IERG and ENGG** data from the
-audited Another Planner revision. Real academic JSON remains outside this repository and is never
-fetched automatically.
-
-Draft Information Engineering requirement data is retained internally but is not exposed by the
-public site. Complete study schemes and a separate review are required before that feature can be
-reactivated. CUWeave does not claim whole-university programme coverage.
-
-## Technology
-
-- Next.js, React, TypeScript, and Tailwind CSS
-- PostgreSQL and Drizzle ORM
-- Better Auth with database-backed sessions and provider-neutral SMTP
-- Python, Pydantic, and Psycopg
-- Vitest, pytest, Playwright, Ruff, and GitHub Actions
-
-## Local development
-
-Requirements: Node.js 22+, pnpm 11+, Python 3.12+, uv, and Docker Compose.
+### Setup
 
 ```bash
 cp .env.example .env
@@ -92,45 +162,44 @@ pnpm dev:seed
 pnpm dev
 ```
 
-Open <http://localhost:3000>. Public sign-in accepts only the exact
-`@link.cuhk.edu.hk` domain. An isolated local or CI environment may use the explicit
-`AUTH_DEV_MODE`, `AUTH_TEST_EMAIL_DOMAIN`, and `AUTH_TEST_OTP` overrides; production ignores them.
+Open [http://localhost:3000](http://localhost:3000). The local setup uses synthetic fixtures; real
+academic JSON is not committed or fetched automatically. See the
+[local import guide](docs/upstream/importing.md) for the pinned-source validation and import
+workflow.
 
-To validate and import every subject declared by the 2026–27 manifest from the pinned, read-only
-upstream checkout:
+Run the standard project checks with:
 
 ```bash
-CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
-  pnpm data:validate:all --format text
-CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
-  DATABASE_URL="$DATABASE_URL" pnpm data:import:all --format text
+pnpm check
 ```
 
-The commands verify the audited revision, validate the entire catalog before importing, and do not
-copy source files into CUWeave. See the
-[local import guide](docs/upstream/importing.md) for provenance and manifest requirements.
+</details>
 
-## Contributing
+### Contributing
 
 Contributions that improve accuracy, accessibility, privacy, or student usefulness are welcome.
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change, and report vulnerabilities
-privately according to [SECURITY.md](SECURITY.md).
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. The
+[README media guide](docs/readme-media-guide.md) documents how to refresh screenshots and record a
+demo without exposing personal information.
 
-## Policies
+Report security vulnerabilities privately by following [SECURITY.md](SECURITY.md), not through a
+public issue.
 
-The current publishable policy drafts are available in the Web application and their source files:
+### Documentation and policies
 
-- [Privacy Policy (`/privacy`)](apps/web/app/privacy/page.tsx)
-- [Terms of Use (`/terms`)](apps/web/app/terms/page.tsx)
-- [Community Guidelines (`/community-guidelines`)](apps/web/app/community-guidelines/page.tsx)
-- [Review and Moderation Policy (`/moderation-policy`)](apps/web/app/moderation-policy/page.tsx)
+- [Architecture overview](docs/architecture/overview.md)
+- [Product principles](docs/product/principles.md)
+- [Planner semantics](docs/product/planner-semantics.md)
+- [Accounts and privacy](docs/product/accounts-and-privacy.md)
+- [Reviews and moderation](docs/product/reviews-and-moderation.md)
+- [Importing and provenance](docs/upstream/importing.md)
+- [Deployment and operations](docs/operations/deployment.md)
 
-These policy documents remain subject to maintainer and legal review as the public service evolves.
+### License and acknowledgements
 
-## License and acknowledgements
-
-CUWeave source code is licensed under the [GNU Affero General Public License v3.0 only](LICENSE).
-Academic data, university materials, names, and third-party projects remain subject to their own
-rights and licenses. Review of an upstream project does not mean its code, fixtures, assets, or
-academic data were incorporated into CUWeave. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-for the audited references and notices.
+CUWeave source code is licensed under the
+[GNU Affero General Public License v3.0 only](LICENSE). Academic data, university materials, names,
+and third-party projects remain subject to their own rights and licenses.
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) records the audited references and notices; review
+of another project does not mean its code, assets, fixtures, or academic data were incorporated
+into CUWeave.
