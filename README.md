@@ -7,9 +7,7 @@
 CUWeave helps CUHK students discover courses, build weekly timetables, save different plans, and
 learn from other students’ experiences—all in one place.
 
-**[Try CUWeave](https://cuweave.org)** ·
-[Report an issue](https://github.com/qinchonghanzuibang/CUWeave/issues) ·
-[Contribute](#contributing)
+**[Try CUWeave](https://cuweave.org)** · [Contribute](#contributing)
 
 </div>
 
@@ -28,30 +26,30 @@ Demo video replacement:
 </a>
 
 <p align="center">
-  <sub>A real signed-out planner view from the public application. Course details remain connected to every meeting.</sub>
+  <sub>Turn course sections into a clear weekly plan.</sub>
 </p>
 
 > CUWeave is an unofficial, student-led project. It is not affiliated with or endorsed by The
 > Chinese University of Hong Kong. Always verify final course and enrollment details in CUSIS.
 
-## One place for the decisions around your timetable
+## Plan your CUHK term in one place
 
 <table>
   <tr>
     <td width="33%" valign="top">
       <h3>Explore courses</h3>
-      Search by course code or title, filter by subject and term, and compare offerings, sections,
-      meetings, instructors, and teaching dates together.
+      Search by course code or title, filter by subject and term, and compare sections, meeting
+      times, instructors, and teaching dates.
     </td>
     <td width="33%" valign="top">
       <h3>Plan your schedule</h3>
-      Add real sections to a Monday–Sunday weekly timetable, move between academic terms, spot
-      confirmed or uncertain conflicts, and export a calendar.
+      Add sections to a Monday–Sunday timetable, switch between academic terms, spot scheduling
+      conflicts, and export your plan to a calendar.
     </td>
     <td width="33%" valign="top">
       <h3>Share experiences</h3>
-      Read structured experiences tied to a course offering or instructor. Eligible students can
-      sign in to contribute, vote, and report concerns.
+      Read experiences tied to a course offering or instructor. Eligible students can sign in to
+      contribute, vote, and report concerns.
     </td>
   </tr>
 </table>
@@ -81,38 +79,38 @@ Demo video replacement:
 
 <img
   src="docs/assets/readme/weekly-planner.png"
-  alt="CUWeave weekly planner showing Monday through Sunday, an 8 AM to 11 PM time axis, and meetings for ENGG5402, IERG5310, and IERG5470"
-  width="1152"
+  alt="CUWeave planner showing selected sections, Term 1 controls, and a populated Monday-to-Sunday timetable"
+  width="1440"
 />
 
 <p align="center">
-  <sub>Compare a coherent week at a glance. Meeting cards use current public course data.</sub>
+  <sub>Compare your week at a glance while each meeting stays connected to its course.</sub>
 </p>
 
 ## Why CUWeave
 
-- **One connected workflow.** Move from search to section details to a weekly plan without
-  rebuilding the same context in separate tools.
-- **Made for CUHK course structure.** Offerings, sections, meeting patterns, teaching dates, and
+- **One connected workflow.** Go from finding a course to comparing sections and building a weekly
+  plan without losing context.
+- **Built for CUHK course structure.** Offerings, sections, meeting patterns, teaching dates, and
   instructors stay visible where they matter.
-- **Plans stay useful.** Anonymous choices remain in the browser; signed-in students can keep
-  private named schedules and create revocable read-only share links.
-- **Source context stays visible.** Catalog coverage, import time, and source revision are available
-  alongside course information.
+- **Plans that stay with you.** Start anonymously in the browser, then sign in to save named
+  schedules and share read-only copies.
+- **Source context stays visible.** See where catalog information came from and when it was
+  imported.
 
 ## Available now
 
-CUWeave is publicly available at **[cuweave.org](https://cuweave.org)**. The live catalog currently
-reports complete 2026–27 manifest coverage across **197 of 197 subjects**; see the always-current
-[data status page](https://cuweave.org/data-status) for course, offering, and section counts.
+CUWeave is available at **[cuweave.org](https://cuweave.org)**. Course discovery and local planning
+work without an account. Saving favorites and schedules, sharing plans, and contributing reviews
+require a one-time code sent to an exact `@link.cuhk.edu.hk` address.
 
-Course discovery and the local planner work without an account. Private favorites, named cloud
-schedules, read-only sharing, and review contributions require a one-time code sent to an exact
-`@link.cuhk.edu.hk` address. Requirement checking is not part of the current public release; it is a
-possible future roadmap item.
+The current catalog covers the complete imported 2026–27 subject manifest. See the always-current
+[data status page](https://cuweave.org/data-status) for course, offering, section, source, and import
+details.
 
-CUWeave does not replace CUSIS or official CUHK materials. Confirm enrollment availability, times,
-venues, teaching dates, and academic decisions with the university’s authoritative systems.
+CUWeave is unofficial and does not replace CUSIS or official CUHK materials. Always verify final
+enrollment availability, times, venues, teaching dates, and academic decisions with the
+university’s authoritative systems.
 
 ## Trust and privacy
 
@@ -182,6 +180,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. The
 [README media guide](docs/readme-media-guide.md) documents how to refresh screenshots and record a
 demo without exposing personal information.
 
+For bugs or feature ideas, [open an issue](https://github.com/qinchonghanzuibang/CUWeave/issues).
 Report security vulnerabilities privately by following [SECURITY.md](SECURITY.md), not through a
 public issue.
 
