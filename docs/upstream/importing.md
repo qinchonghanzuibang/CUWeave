@@ -1,8 +1,8 @@
 # Local academic data import
 
 CUWeave imports one local subject/year JSON document at a time. It never dereferences `source_uri`
-or contacts CUHK. The initial audited compatibility revision is
-`6c9ea314ff5595dd90a88bbbdae8d286408d85f3`.
+or contacts CUHK. The current approved import revision is
+`a8104fe1c822196fef5bf7ab3595f226951518a7`.
 
 Create a local, untracked manifest:
 
@@ -46,7 +46,7 @@ CUWEAVE_UPSTREAM_DIR=/absolute/path/to/another-cuhk-course-planner \
 ```
 
 The checkout must be exactly revision
-`6c9ea314ff5595dd90a88bbbdae8d286408d85f3`; another revision, a missing/unexpected/empty file,
+`a8104fe1c822196fef5bf7ab3595f226951518a7`; another revision, a missing/unexpected/empty file,
 metadata mismatch, duplicate, or unsupported value is rejected. Midnight-to-midnight source
 placeholders are preserved raw and marked as unknown rather than inferred. Medicine's explicit
 academic-year term is recorded as `academic-year`. Deterministic JSON/text reports include coverage,

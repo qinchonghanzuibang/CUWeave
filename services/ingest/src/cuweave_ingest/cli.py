@@ -52,7 +52,7 @@ def _load(path: Path, *, maximum_bytes: int = 16 * 1024 * 1024) -> bytes:
     return data
 
 
-APPROVED_UPSTREAM_REVISION = "6c9ea314ff5595dd90a88bbbdae8d286408d85f3"
+APPROVED_UPSTREAM_REVISION = "a8104fe1c822196fef5bf7ab3595f226951518a7"
 
 
 def _git(upstream: Path, *args: str) -> str:

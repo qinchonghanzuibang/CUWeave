@@ -213,7 +213,7 @@ export const courseOffering = pgTable(
   (table) => [
     check(
       'course_offering_term_check',
-      sql`${table.termKey} in ('term-1', 'term-2', 'summer-session', 'academic-year')`
+      sql`${table.termKey} in ('term-1', 'term-2', 'term-3', 'term-4', 'summer-session', 'academic-year')`
     ),
     uniqueIndex('course_offering_active_unique')
       .on(table.courseId, table.academicYear, table.termKey)

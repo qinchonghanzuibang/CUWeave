@@ -129,7 +129,14 @@ class NormalizedSection(BaseModel):
 class NormalizedOffering(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    term_key: Literal["term-1", "term-2", "summer-session", "academic-year"]
+    term_key: Literal[
+        "term-1",
+        "term-2",
+        "term-3",
+        "term-4",
+        "summer-session",
+        "academic-year",
+    ]
     term_code_raw: str
     term_name_raw: str
     record_hash: str
