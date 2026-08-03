@@ -17,6 +17,8 @@ export const metadata: Metadata = {
 const terms = [
   ['term-1', 'Term 1'],
   ['term-2', 'Term 2'],
+  ['term-3', 'Term 3'],
+  ['term-4', 'Term 4'],
   ['summer-session', 'Summer'],
   ['academic-year', 'Academic year'],
 ] as const

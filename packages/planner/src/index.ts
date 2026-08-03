@@ -237,8 +237,10 @@ export function deduplicatePlannerSections(
 const termOrder = new Map([
   ['term-1', 1],
   ['term-2', 2],
-  ['summer-session', 3],
-  ['academic-year', 4],
+  ['term-3', 3],
+  ['term-4', 4],
+  ['summer-session', 5],
+  ['academic-year', 6],
 ])
 
 export function groupSectionsByAcademicTerm(

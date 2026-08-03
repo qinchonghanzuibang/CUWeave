@@ -45,6 +45,30 @@ def test_credit_formats_are_exact(value: str) -> None:
     assert result.courses[0].credits_raw == value
 
 
+@pytest.mark.parametrize(
+    ("value", "minimum"),
+    [("1.50 - 2.00", Decimal("1.50")), ("3.50 - 4.00", Decimal("3.50"))],
+)
+def test_credit_ranges_preserve_source_and_use_conservative_minimum(
+    value: str, minimum: Decimal
+) -> None:
+    raw, manifest = load()
+    document = json.loads(raw)
+    document["courses"][0]["credits"] = value
+    result = adapt(json.dumps(document).encode(), manifest)
+    assert result.courses[0].credits == minimum
+    assert result.courses[0].credits_raw == value
+
+
+@pytest.mark.parametrize("value", ["2.00 - 1.50", "1.50 -", "variable"])
+def test_invalid_credit_ranges_are_rejected(value: str) -> None:
+    raw, manifest = load()
+    document = json.loads(raw)
+    document["courses"][0]["credits"] = value
+    with pytest.raises(ImportValidationError):
+        adapt(json.dumps(document).encode(), manifest)
+
+
 def test_missing_required_field_is_rejected() -> None:
     raw, manifest = load()
     document = json.loads(raw)
@@ -71,6 +95,18 @@ def test_unknown_term_is_rejected() -> None:
     document["courses"][0]["terms"][0]["term_name"] = "2099-00 Special Session"
     with pytest.raises(ImportValidationError):
         adapt(json.dumps(document).encode(), manifest)
+
+
+@pytest.mark.parametrize(
+    ("term_name", "term_key"),
+    [("2099-00 Term 3", "term-3"), ("2099-00 Term 4", "term-4")],
+)
+def test_additional_numbered_terms_are_supported(term_name: str, term_key: str) -> None:
+    raw, manifest = load()
+    document = json.loads(raw)
+    document["courses"][0]["terms"][0]["term_name"] = term_name
+    snapshot = adapt(json.dumps(document).encode(), manifest)
+    assert snapshot.courses[0].offerings[0].term_key == term_key
 
 
 def test_midnight_placeholder_is_preserved_as_unknown_warning() -> None:

@@ -48,7 +48,7 @@ def parse_nonnegative_integer(value: str, path: str) -> int:
     return int(value)
 
 
-def parse_credit(value: str, path: str) -> Decimal:
+def _parse_credit_endpoint(value: str, path: str) -> Decimal:
     try:
         result = Decimal(value)
     except InvalidOperation as error:
@@ -60,6 +60,17 @@ def parse_credit(value: str, path: str) -> Decimal:
     return result
 
 
+def parse_credit(value: str, path: str) -> tuple[Decimal, Decimal]:
+    endpoints = [part.strip() for part in value.split("-")]
+    if len(endpoints) not in (1, 2) or any(not endpoint for endpoint in endpoints):
+        raise ImportValidationError(f"{path}: invalid credit value")
+    minimum = _parse_credit_endpoint(endpoints[0], path)
+    maximum = _parse_credit_endpoint(endpoints[-1], path)
+    if maximum < minimum:
+        raise ImportValidationError(f"{path}: credit range must be ascending")
+    return minimum, maximum
+
+
 def parse_term(term_code: str, term_name: str, academic_year: str, path: str) -> str:
     if academic_year not in term_name:
         raise ImportValidationError(f"{path}: term academic year does not match manifest")
@@ -68,6 +79,10 @@ def parse_term(term_code: str, term_name: str, academic_year: str, path: str) ->
         return "term-1"
     if "term 2" in normalized:
         return "term-2"
+    if "term 3" in normalized:
+        return "term-3"
+    if "term 4" in normalized:
+        return "term-4"
     if "summer" in normalized:
         return "summer-session"
     if "acad year" in normalized:
@@ -124,12 +139,13 @@ def adapt(raw_bytes: bytes, manifest: Manifest) -> NormalizedSnapshot:
         if course_number in seen_courses:
             raise ImportValidationError(f"{path}: duplicate course identity")
         seen_courses.add(course_number)
-        credits = parse_credit(course.credits, f"{path}.credits")
+        credits, credits_maximum = parse_credit(course.credits, f"{path}.credits")
         catalog_record = {
             "subject": course.subject,
             "course_code": course_number,
             "title": normalize_display(course.title),
             "credits": format(credits, "f"),
+            "credits_maximum": format(credits_maximum, "f"),
             "academic_career": course.academic_career,
         }
 

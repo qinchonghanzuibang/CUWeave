@@ -1,0 +1,2 @@
+ALTER TABLE "course_offering" DROP CONSTRAINT "course_offering_term_check";--> statement-breakpoint
+ALTER TABLE "course_offering" ADD CONSTRAINT "course_offering_term_check" CHECK ("course_offering"."term_key" in ('term-1', 'term-2', 'term-3', 'term-4', 'summer-session', 'academic-year'));

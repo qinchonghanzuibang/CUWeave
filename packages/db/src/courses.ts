@@ -98,7 +98,7 @@ export async function searchCourses(
         c.subject_code as subject,
         c.catalog_number,
         v.title,
-        v.credits::text,
+        v.credits_raw as credits,
         v.academic_year,
         array_agg(distinct o.term_key order by o.term_key) as terms,
         s.source_name,
@@ -126,7 +126,7 @@ export async function searchCourses(
         )
         and ($3 = '' or c.subject_code = $3)
         and ($4 = '' or o.term_key = $4)
-      group by c.id, c.subject_code, c.catalog_number, v.id, v.title, v.credits,
+      group by c.id, c.subject_code, c.catalog_number, v.id, v.title, v.credits_raw,
         v.academic_year, s.source_name
       order by c.subject_code, c.catalog_number
       limit $5 offset $6
@@ -259,7 +259,7 @@ export async function getCourseDetail(
       select
         c.id::text as course_id,
         c.subject_code || c.catalog_number as code,
-        v.title, v.credits::text, v.academic_career_raw as academic_career,
+        v.title, v.credits_raw as credits, v.academic_career_raw as academic_career,
         v.academic_year, snap.source_name, snap.upstream_revision,
         run.finished_at as imported_at,
         sec.id::text as section_id, sec.section_label_raw as section_label,
