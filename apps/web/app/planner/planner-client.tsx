@@ -29,6 +29,16 @@ import {
 type LoadedSection = CourseSection & { courseCode: string }
 const CLOUD_SCHEDULE_KEY = 'cuweave:cloud-schedule-id'
 
+function sameSectionIds(first: string[], second: string[]): boolean {
+  if (first.length !== second.length) return false
+  const expected = new Set(first)
+  return second.every((sectionId) => expected.has(sectionId))
+}
+
+function sectionCount(count: number): string {
+  return `${count} ${count === 1 ? 'section' : 'sections'}`
+}
+
 function asPlannerSection(section: LoadedSection): PlannerSection {
   return {
     id: section.id,
@@ -102,6 +112,9 @@ export function PlannerClient({
   const selectedCloudSchedule = cloudSchedules.find(
     (schedule) => schedule.id === selectedCloudId
   )
+  const cloudScheduleDiffers = selectedCloudSchedule
+    ? !sameSectionIds(sectionIds, selectedCloudSchedule.sectionIds)
+    : false
 
   useEffect(() => {
     if (sectionIds.length === 0) return
@@ -134,6 +147,48 @@ export function PlannerClient({
     if (id) localStorage.setItem(CLOUD_SCHEDULE_KEY, id)
     else localStorage.removeItem(CLOUD_SCHEDULE_KEY)
     window.dispatchEvent(new Event('cuweave:cloud-schedule-changed'))
+    const selected = cloudSchedules.find((schedule) => schedule.id === id)
+    setCloudMessage(
+      selected
+        ? `Selected ${selected.name}. Open it to replace the local planner, or update it from the local planner.`
+        : 'New cloud copies are created from the local planner.'
+    )
+  }
+
+  function loadCloudSchedule() {
+    const selected = selectedCloudSchedule
+    if (!selected) return
+    if (!cloudScheduleDiffers) {
+      setCloudMessage(`${selected.name} is already open in this planner.`)
+      return
+    }
+    if (
+      sectionIds.length > 0 &&
+      !window.confirm(
+        `Open "${selected.name}" from the cloud? This replaces the ${sectionCount(sectionIds.length)} currently in this browser. The cloud schedule will not be changed.`
+      )
+    ) {
+      setCloudMessage('Cloud schedule was not opened.')
+      return
+    }
+    replacePlannerSections(selected.sectionIds)
+    setCloudMessage(
+      `Opened ${selected.name} from the cloud with ${sectionCount(selected.sectionIds.length)}.`
+    )
+  }
+
+  function clearLocalSchedule() {
+    if (sectionIds.length === 0) return
+    if (
+      !window.confirm(
+        `Clear ${sectionCount(sectionIds.length)} from this browser? Your cloud schedules will not be changed.`
+      )
+    )
+      return
+    store([])
+    setCloudMessage(
+      'Cleared the local planner. Cloud schedules were not changed.'
+    )
   }
 
   async function saveCloudCopy() {
@@ -149,15 +204,15 @@ export function PlannerClient({
       error?: string
       schedule?: SavedScheduleRecord
     }
-    if (response.ok && data.schedule) {
-      const saved = data.schedule
-      setCloudSchedules((current) => [saved, ...current])
-      selectCloudSchedule(saved.id)
+    if (!response.ok || !data.schedule) {
+      setCloudMessage(data.error ?? 'Cloud save failed.')
+      return
     }
+    const saved = data.schedule
+    setCloudSchedules((current) => [saved, ...current])
+    selectCloudSchedule(saved.id)
     setCloudMessage(
-      response.ok
-        ? 'Saved as a new cloud schedule. Open Schedules to rename or share it.'
-        : (data.error ?? 'Cloud save failed.')
+      'Saved as a new cloud schedule. Open Schedules to rename or share it.'
     )
   }
 
@@ -165,6 +220,19 @@ export function PlannerClient({
     const selected = selectedCloudSchedule
     if (!selected) {
       await saveCloudCopy()
+      return
+    }
+    const localIds = new Set(sectionIds)
+    const removedCount = selected.sectionIds.filter(
+      (sectionId) => !localIds.has(sectionId)
+    ).length
+    if (
+      removedCount > 0 &&
+      !window.confirm(
+        `Update "${selected.name}" from this browser? This removes ${sectionCount(removedCount)} from the cloud schedule.`
+      )
+    ) {
+      setCloudMessage('Cloud update was canceled.')
       return
     }
     const response = await fetch(`/api/v1/schedules/${selected.id}`, {
@@ -176,19 +244,17 @@ export function PlannerClient({
       error?: string
       schedule?: SavedScheduleRecord
     }
-    if (response.ok && data.schedule) {
-      const updated = data.schedule
-      setCloudSchedules((current) =>
-        current.map((schedule) =>
-          schedule.id === updated.id ? updated : schedule
-        )
-      )
+    if (!response.ok || !data.schedule) {
+      setCloudMessage(data.error ?? 'Cloud update failed.')
+      return
     }
-    setCloudMessage(
-      response.ok
-        ? `Updated ${selected.name} with optimistic conflict protection.`
-        : (data.error ?? 'Cloud update failed.')
+    const updated = data.schedule
+    setCloudSchedules((current) =>
+      current.map((schedule) =>
+        schedule.id === updated.id ? updated : schedule
+      )
     )
+    setCloudMessage(`Updated ${updated.name} in the cloud.`)
   }
 
   const selectedSections = useMemo(() => {
@@ -286,10 +352,20 @@ export function PlannerClient({
                   <option value="">New cloud copy</option>
                   {cloudSchedules.map((schedule) => (
                     <option key={schedule.id} value={schedule.id}>
-                      {schedule.name}
+                      {schedule.name} ·{' '}
+                      {sectionCount(schedule.sectionIds.length)}
                     </option>
                   ))}
                 </select>
+              ) : null}
+              {selectedCloudSchedule ? (
+                <button
+                  className="button-secondary"
+                  onClick={loadCloudSchedule}
+                  type="button"
+                >
+                  Open cloud schedule
+                </button>
               ) : null}
               <button
                 className="button-primary"
@@ -308,7 +384,8 @@ export function PlannerClient({
           )}
           <button
             className="button-danger"
-            onClick={() => store([])}
+            disabled={sectionIds.length === 0}
+            onClick={clearLocalSchedule}
             type="button"
           >
             Clear schedule
@@ -320,6 +397,16 @@ export function PlannerClient({
         <p className="status-banner status-info" role="status">
           {cloudMessage}
         </p>
+      ) : null}
+
+      {selectedCloudSchedule && cloudScheduleDiffers ? (
+        <div className="status-banner status-warning p-4">
+          The local planner has {sectionCount(sectionIds.length)}, while{' '}
+          <strong>{selectedCloudSchedule.name}</strong> has{' '}
+          {sectionCount(selectedCloudSchedule.sectionIds.length)}. Open the
+          cloud schedule to use its sections, or update it from the local
+          planner.
+        </div>
       ) : null}
 
       {calendarMessage ? (

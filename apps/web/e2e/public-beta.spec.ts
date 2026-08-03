@@ -82,6 +82,35 @@ test('signs in, saves a schedule, favorites, reviews, shares, and moderates', as
   await page.getByRole('link', { name: 'Added to planner' }).click()
   await page.getByRole('button', { name: 'Save cloud copy' }).click()
   await expect(page.getByText(/Saved as a new cloud schedule/)).toBeVisible()
+  await expect(page.getByLabel('Cloud schedule target')).toContainText(
+    /1 section/
+  )
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('Clear 1 section from this browser?')
+    await dialog.accept()
+  })
+  await page.getByRole('button', { name: 'Clear schedule' }).click()
+  await expect(page.getByText(/0 selected sections/)).toBeVisible()
+  const cloudDifference = page.locator('.status-warning')
+  await expect(cloudDifference).toContainText(
+    'The local planner has 0 sections'
+  )
+  await expect(cloudDifference).toContainText('has 1 section')
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain(
+      'This removes 1 section from the cloud schedule.'
+    )
+    await dialog.dismiss()
+  })
+  await page.getByRole('button', { name: 'Update cloud schedule' }).click()
+  await expect(page.getByRole('status')).toHaveText(
+    'Cloud update was canceled.'
+  )
+  await page.getByRole('button', { name: 'Open cloud schedule' }).click()
+  await expect(page.getByText(/1 selected sections/)).toBeVisible()
+  await expect(page.getByRole('status')).toContainText('Opened Planner ')
 
   await page.goto('/schedules')
   await page.getByRole('button', { name: 'Share', exact: true }).first().click()
