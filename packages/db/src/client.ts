@@ -15,10 +15,10 @@ const globalDatabase = globalThis as typeof globalThis & {
 function createConnection(): DatabaseConnection {
   const pool = new Pool({
     connectionString: getDatabaseUrl(),
-    connectionTimeoutMillis: 1_500,
+    connectionTimeoutMillis: 5_000,
     idleTimeoutMillis: 10_000,
     max: databasePoolSize(),
-    query_timeout: 2_000,
+    query_timeout: 5_000,
     ssl: databaseTlsEnabled() ? { rejectUnauthorized: true } : false,
   })
 
